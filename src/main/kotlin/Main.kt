@@ -26,11 +26,17 @@ import kotlinx.coroutines.launch
 import kotlin.math.pow
 
 
-val mainColorTemp = Color(88, 50, 89)
 //val secondColorTemp = Color(50, 220, 211)
-val secondColorTemp = Color(125, 175,156)
-val backColor = Color(43, 48, 59)
+//val secondColorTemp = Color(125, 175,156)
 
+val secondColorTemp = Color(143, 180, 255)
+
+//rgb(150, 128, 255)
+
+val mainColorTemp =
+    Color(112, 197, 255)
+//val backColor = Color(43, 48, 59)
+val backColor = Color(29, 43, 125)
 
 
 fun main() = application {
