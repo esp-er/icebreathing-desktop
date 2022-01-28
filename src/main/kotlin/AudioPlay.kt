@@ -13,7 +13,7 @@ enum class SoundType {
 
 class AudioPlay(){
     private var breathOut: Clip
-    private var breathIn: Clip
+    private var clip: Clip
     private var triangle: Clip
 
     init{
@@ -27,8 +27,8 @@ class AudioPlay(){
         breathOut.open(streamIn)
 
         val streamIn2 = AudioSystem.getAudioInputStream(audioRes2)
-        breathIn = AudioSystem.getClip()
-        breathIn.open(streamIn2)
+        clip = AudioSystem.getClip()
+        clip.open(streamIn2)
 
         val streamIn3 = AudioSystem.getAudioInputStream(resTriang)
         triangle = AudioSystem.getClip()
@@ -36,48 +36,33 @@ class AudioPlay(){
     }
 
     fun play(whichSound: SoundType, initDelay: Long = 1){
+        val clip = when(whichSound) {
+            SoundType.Triangle -> triangle
+            SoundType.BreatheOut -> breathOut
+            SoundType.BreatheIn -> clip
+        }
+
         thread(start=true) {
-            when(whichSound) {
-                SoundType.BreatheOut -> playBreatheOut(initDelay)
-                SoundType.BreatheIn -> playBreatheIn(initDelay)
-                else -> playTriangle(initDelay)
-            }
+            playClip(clip, initDelay)
         }
     }
 
-    private fun playTriangle(initDelay: Long){
-        val sleepTime = breathIn.microsecondLength / 1000L
+    private fun playClip(clip: Clip, initDelay: Long){
+        val sleepTime = clip.microsecondLength / 1000L
         Thread.sleep(initDelay);
-        triangle.microsecondPosition = 0
-        triangle.loop(Clip.LOOP_CONTINUOUSLY);
+        clip.microsecondPosition = 0
+        clip.loop(Clip.LOOP_CONTINUOUSLY);
         Thread.sleep(sleepTime)
-        triangle.stop()
-    }
-
-    private fun playBreatheIn(initDelay: Long){
-        val sleepTime = breathIn.microsecondLength / 1000L
-        Thread.sleep(initDelay)
-        breathIn.microsecondPosition = 0
-        breathIn.loop(Clip.LOOP_CONTINUOUSLY);
-        Thread.sleep(sleepTime)
-        breathIn.stop()
-    }
-    private fun playBreatheOut( initDelay: Long){
-        val sleepTime = breathOut.microsecondLength / 1000L
-        Thread.sleep(initDelay)
-        breathOut.microsecondPosition = 0
-        breathOut.loop(Clip.LOOP_CONTINUOUSLY);
-        Thread.sleep(sleepTime)
-        breathOut.stop()
+        clip.stop()
     }
 
     fun stop(){
         triangle.stop()
-        breathIn.stop()
+        clip.stop()
         breathOut.stop()
     }
     fun close(){
-        breathIn.close()
+        clip.close()
         breathOut.close()
         triangle.close()
     }
