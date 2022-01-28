@@ -41,8 +41,8 @@ val backColor = Color(29, 43, 125)
 
 fun main() = application {
     val audio = AudioPlay()
-    System.setProperty("skiko.renderApi", "OPENGL") //Not really necessary ("SOFTWARE" is slow)
-    val state = rememberWindowState(width = 450.dp, height = 550.dp, position = WindowPosition(1400.dp, 200.dp))
+    System.setProperty("skiko.renderApi", "OPENGL") //(Explicit) Not really necessary ("SOFTWARE" is too slow)
+    val state = rememberWindowState(width = 450.dp, height = 580.dp, position = WindowPosition(1400.dp, 200.dp))
     Window(onCloseRequest = ::exitApplication,
         state,
         transparent = true,
@@ -50,12 +50,6 @@ fun main() = application {
         alwaysOnTop = true
     ) {
         App(audio)
-        /*
-        LaunchedEffect(state){
-            snapshotFlow { state.size }
-                .onEach(::println)
-                .launchIn(this)
-        }*/
     }
 }
 
@@ -124,7 +118,7 @@ fun breatheCanvas(
     onFinishBreath: () -> Unit,
     breathPaused: Boolean,
     animSpeed: Int,
-    playSound: () -> Unit
+    playSound: (SoundType) -> Unit
 ) {
     val edgeLeaves = LeafPos.values().filterNot{ it == LeafPos.Center } //preallocate the values for performance
     var currRad by remember { mutableStateOf(0f)}
@@ -158,7 +152,7 @@ fun breatheCanvas(
         recalcRadius()
         if(totalBreaths == currBreaths) finalBreath = true
         breatheState = BreatheState.Full
-        playSound()
+        playSound(SoundType.BreatheIn)
     }
     LaunchedEffect(breathPaused){
         if(breathPaused){
@@ -235,6 +229,7 @@ fun breatheCanvas(
         finishedListener = {
             if(breatheState == BreatheState.Full) {
                 breatheState = BreatheState.Empty
+                playSound(SoundType.BreatheOut)
             }
             else if(breatheState == BreatheState.Paused)
                 breatheState = BreatheState.Paused

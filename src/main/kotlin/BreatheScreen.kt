@@ -10,6 +10,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.*
@@ -59,12 +60,13 @@ fun PrepareScreen(winsize: IntSize, roundNum: Int, breathGoal: Int, finishedPrep
 }
 
 @Composable
-fun BreathHoldScreen(winsize: IntSize, timeLeft: Int,  finishedHold: (SessionState) -> Unit){
+fun BreathHoldScreen(winsize: IntSize, timeLeft: Int,  finishedHold: (SessionState) -> Unit, playSound: (SoundType) -> Unit){
     var time by remember { mutableStateOf(timeLeft)}
     //NOTE: val timeText by remember { derivedStateOf {timeLeft.secondsAsStr()}}
     //NOTE: Changing either a or b will cause CountDisplay to recompose but not trigger Example
     // to recompose.
     LaunchedEffect(true) {
+        playSound(SoundType.Triangle)
         fixedRateTimer("timer", false, 0, 1000) {
             time--
         }
@@ -76,10 +78,11 @@ fun BreathHoldScreen(winsize: IntSize, timeLeft: Int,  finishedHold: (SessionSta
     Column(horizontalAlignment = Alignment.CenterHorizontally){
         Text("Hold", style = TextStyle(fontSize = 28.sp, color = Color.White))
         Text(time.secondsAsStr(), style = TextStyle(fontSize = 32.sp, color = Color.White))
-        OutlinedButton(onClick = {finishedHold(SessionState.BreatheHold)}, modifier= Modifier.offset(y=20.dp)) {
+        OutlinedButton(onClick = {finishedHold(SessionState.BreatheHold)}, modifier= Modifier.offset(y=20.dp),
+        shape = CircleShape) {
             Icon(Icons.Outlined.CheckCircle, contentDescription = "Hold Done")
-            Spacer(modifier = Modifier.padding(horizontal = 2.dp))
-            Text("Finished")
+            //Spacer(modifier = Modifier.padding(horizontal = 2.dp))
+            //Text("Inhale")
         }
     }
 
@@ -89,7 +92,7 @@ enum class HoldState{
     Stop, Inhale, Exhale;
 }
 @Composable
-fun BreathInScreen(winsize: IntSize, timeLeft: Int = 17,  finishedHold: (SessionState) -> Unit){
+fun BreathInScreen(winsize: IntSize, timeLeft: Int = 17,  finishedHold: (SessionState) -> Unit, playSound: (SoundType) -> Unit){
     val holdTime = 16.0f //TODO: remove these magic values
     val progressDia = winsize.height / 1.5f
     var holdState by remember { mutableStateOf(HoldState.Stop)}
@@ -99,6 +102,7 @@ fun BreathInScreen(winsize: IntSize, timeLeft: Int = 17,  finishedHold: (Session
     //val timeText by remember { derivedStateOf {timeLeft.secondsAsStr()}}
 
     LaunchedEffect(true) {
+        playSound(SoundType.BreatheIn)
         holdState = HoldState.Inhale
         fixedRateTimer("timer", false, 2000, 1000) {
             if(time <= 2){
@@ -106,6 +110,10 @@ fun BreathInScreen(winsize: IntSize, timeLeft: Int = 17,  finishedHold: (Session
             }
             if(time > 0) time--
         }
+    }
+    LaunchedEffect(holdState) {
+        if(holdState == HoldState.Exhale)
+            playSound(SoundType.BreatheOut)
     }
     LaunchedEffect(time){
         if (time <= 0) {
@@ -135,29 +143,29 @@ fun BreathInScreen(winsize: IntSize, timeLeft: Int = 17,  finishedHold: (Session
 
     Canvas(modifier = Modifier.offset(0.dp,0.dp)) {
         drawCircle(radius = (progressDia / 2.0f) * transitionMultiplier,
-            color = Color.DarkGray)
+            color = backColor)
     }
 
     CircularProgressIndicator(modifier = Modifier.size(progSize),
         progress = maxOf(countdownProgress, 0f),
-        strokeWidth = (progressDia / 4.0f).dp,
-        color = MaterialTheme.colors.primary)
+        strokeWidth = (progressDia / 6.0f).dp,
+        color = secondColorTemp)
 
     Column(horizontalAlignment = Alignment.CenterHorizontally){
         if(transition.currentState == HoldState.Stop){
-            Text("Fully In", style = TextStyle(fontSize = (transitionMultiplier * 32).sp, color = Color.White))
+            Text("Fully In", style = TextStyle(fontSize = (transitionMultiplier * 28).sp, color = Color.White))
         }
         else{
             Box() {
                 if(holdState == HoldState.Inhale)
                     Text(
                         (time - 1).secondsAsStr(),
-                        style = TextStyle(fontSize = 32.sp, color = Color.White.copy(alpha = transitionMultiplier))
+                        style = TextStyle(fontSize = 28.sp, color = Color.White.copy(alpha = transitionMultiplier))
                     )
                 else
                     Text(
                         "Exhale",
-                        style = TextStyle(fontSize = (32 * transitionMultiplier).sp,
+                        style = TextStyle(fontSize = (28 * transitionMultiplier).sp,
                             color = Color.White.copy(alpha = minOf(1.0f,transitionMultiplier+0.5f))
                         )
                     )
@@ -233,10 +241,6 @@ fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, audio: Audio
                 }
         }
 
-        fun playSound(){
-            audio.stop()
-            audio.play()
-        }
 
         fun incrementBreath() {
             println(numBreaths)
@@ -259,16 +263,24 @@ fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, audio: Audio
         fun increaseSpeed() { breathRate = breathRate.Increase()}
         fun decreaseSpeed() { breathRate = breathRate.Decrease()}
 
+        fun playSound(x: SoundType) {
+            if(sessState == SessionState.Breathe && x == SoundType.BreatheOut && numBreaths == breathGoal)
+                audio.play(x, 1200)
+            else
+                audio.play(x)
+        }
+
         if(sessState == SessionState.Prepare){
             setTransparent(false)
             PrepareScreen(winsize, roundNum, breathGoal, ::transitionBreathing)
         }
         else if(sessState == SessionState.BreatheHold) {
             setTransparent(true)
-            BreathHoldScreen(winsize, thisSession.breathHoldTime.getOrElse(roundNum, { 1 }), ::transitionBreathing)
+            BreathHoldScreen(winsize, thisSession.breathHoldTime.getOrElse(roundNum, { 1 }),
+                ::transitionBreathing, ::playSound)
         }
         else if(sessState == SessionState.BreatheInHold)
-            BreathInScreen(winsize, finishedHold = ::incrementRound)
+            BreathInScreen(winsize, finishedHold = ::incrementRound, playSound = ::playSound)
         else if(sessState == SessionState.Done) {
             setTransparent(false)
             DoneScreen()

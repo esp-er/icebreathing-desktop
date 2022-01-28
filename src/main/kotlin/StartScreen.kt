@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.LazyVerticalGrid
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
@@ -111,11 +112,16 @@ fun StartScreen(finishedSelection: (SessionData) -> Unit){
             }
         }*/
 
-        Spacer(modifier = Modifier.padding(10.dp))
-        Button(onClick = { finishedSelection(breathingSession) }){
-            Icon(Icons.Filled.SelfImprovement, "Start Breathing")
-            Spacer(modifier = Modifier.padding(horizontal = 4.dp))
-            Text("Start Breathing!")
+        Spacer(modifier = Modifier.padding(2.dp))
+        Button(onClick = { finishedSelection(breathingSession) },
+            shape = CircleShape,
+            modifier = Modifier.size(100.dp)){
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(Icons.Filled.SelfImprovement, "Start Breathing",
+                modifier = Modifier.size(32.dp))
+                Spacer(modifier = Modifier.padding(vertical = 2.dp))
+                Text("Breathe!")
+            }
         }
     }
 
