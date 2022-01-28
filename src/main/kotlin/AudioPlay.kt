@@ -49,7 +49,7 @@ class AudioPlay(){
         val sleepTime = breathIn.microsecondLength / 1000L
         Thread.sleep(initDelay);
         triangle.microsecondPosition = 0
-        breathIn.loop(Clip.LOOP_CONTINUOUSLY);
+        triangle.loop(Clip.LOOP_CONTINUOUSLY);
         Thread.sleep(sleepTime)
         triangle.stop()
     }
