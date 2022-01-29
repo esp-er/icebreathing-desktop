@@ -63,7 +63,7 @@ fun StartScreen(finishedSelection: (SessionData) -> Unit){
 
         Box(modifier = Modifier.size(400.dp, 80.dp), contentAlignment = Alignment.TopCenter) {
             Column(modifier = Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally)  {
-                Text("No. Breaths", textAlign = TextAlign.Center,
+                Text("Breaths", textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                     fontWeight = FontWeight.Medium,
                     style = TextStyle(fontSize = 16.sp, color = Color.LightGray))
@@ -74,7 +74,7 @@ fun StartScreen(finishedSelection: (SessionData) -> Unit){
 
         Box(modifier = Modifier.size(400.dp, 95.dp).offset(y = 5.dp)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally){
-                Text("No. Rounds", textAlign = TextAlign.Center,
+                Text("Rounds", textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 10.dp),
                 fontWeight = FontWeight.Medium,
                 color = Color.LightGray
@@ -245,7 +245,7 @@ fun holdTimesSelectGrid(numRoundsSelected: Int, onTimeChanged: (Map<Int,Int>) ->
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            "Breath Hold Times",
+            "Hold Times",
             color = Color.LightGray,
             textAlign = TextAlign.Start,
             fontWeight = FontWeight.Medium,

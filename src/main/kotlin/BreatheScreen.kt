@@ -52,10 +52,10 @@ fun PrepareScreen(winsize: IntSize, roundNum: Int, breathGoal: Int, finishedPrep
     }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally){
-        Text("Round #$roundNum", style = TextStyle(fontSize = 28.sp, color = Color.White.copy(alpha = textOpacity)))
+        Text("Round $roundNum", style = TextStyle(fontSize = 28.sp, color = Color.White.copy(alpha = textOpacity)))
         Text("Get Ready!", style = TextStyle(fontSize = 28.sp, color = Color.White.copy(alpha = textOpacity)))
         Spacer(modifier = Modifier.height(30.dp))
-        Text("$breathGoal Breaths", style = TextStyle(fontSize = 14.sp, color = Color.White.copy(alpha = textOpacity)))
+        Text("$breathGoal Breaths", style = TextStyle(fontSize = 16.sp, color = Color.White.copy(alpha = textOpacity)))
     }
 }
 
@@ -76,11 +76,11 @@ fun BreathHoldScreen(winsize: IntSize, timeLeft: Int,  finishedHold: (SessionSta
     }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally){
-        Text("Hold", style = TextStyle(fontSize = 28.sp, color = Color.White))
-        Text(time.secondsAsStr(), style = TextStyle(fontSize = 32.sp, color = Color.White))
+        Text("Inhale In", style = TextStyle(fontSize = 28.sp, color = Color.White))
+        Text(time.secondsAsStr(), style = TextStyle(fontSize = 28.sp, color = Color.White))
         OutlinedButton(onClick = {finishedHold(SessionState.BreatheHold)}, modifier= Modifier.offset(y=20.dp),
         shape = CircleShape) {
-            Icon(Icons.Outlined.CheckCircle, contentDescription = "Hold Done")
+            Icon(Icons.Outlined.CheckCircle, contentDescription = "Finish Holding")
             //Spacer(modifier = Modifier.padding(horizontal = 2.dp))
             //Text("Inhale")
         }
@@ -153,7 +153,7 @@ fun BreathInScreen(winsize: IntSize, timeLeft: Int = 17,  finishedHold: (Session
 
     Column(horizontalAlignment = Alignment.CenterHorizontally){
         if(transition.currentState == HoldState.Stop){
-            Text("Fully In", style = TextStyle(fontSize = (transitionMultiplier * 28).sp, color = Color.White))
+            Text("Breath In", style = TextStyle(fontSize = (transitionMultiplier * 28).sp, color = Color.White))
         }
         else{
             Box() {
@@ -164,7 +164,7 @@ fun BreathInScreen(winsize: IntSize, timeLeft: Int = 17,  finishedHold: (Session
                     )
                 else
                     Text(
-                        "Exhale",
+                        "Breath Out",
                         style = TextStyle(fontSize = (28 * transitionMultiplier).sp,
                             color = Color.White.copy(alpha = minOf(1.0f,transitionMultiplier+0.5f))
                         )
