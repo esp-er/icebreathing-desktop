@@ -18,11 +18,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.concurrent.fixedRateTimer
 import kotlin.system.exitProcess
 
 
 const val ANIM_MS = 1500
+const val BREATH_DELAY = 1200L
 val buttonDp = 32.dp
 
 private enum class PrepareState{
@@ -76,7 +78,7 @@ fun BreathHoldScreen(winsize: IntSize, timeLeft: Int,  finishedHold: (SessionSta
     }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally){
-        Text("Inhale In", style = TextStyle(fontSize = 28.sp, color = Color.White))
+        Text("Inhale In:", style = TextStyle(fontSize = 28.sp, color = Color.White))
         Text(time.secondsAsStr(), style = TextStyle(fontSize = 28.sp, color = Color.White))
         OutlinedButton(onClick = {finishedHold(SessionState.BreatheHold)}, modifier= Modifier.offset(y=20.dp),
         shape = CircleShape) {
@@ -157,18 +159,24 @@ fun BreathInScreen(winsize: IntSize, timeLeft: Int = 17,  finishedHold: (Session
         }
         else{
             Box() {
-                if(holdState == HoldState.Inhale)
-                    Text(
-                        (time - 1).secondsAsStr(),
-                        style = TextStyle(fontSize = 28.sp, color = Color.White.copy(alpha = transitionMultiplier))
-                    )
-                else
+                if(holdState == HoldState.Inhale) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("Exhale In:", style = TextStyle(fontSize = 28.sp, color = Color.White.copy(alpha = transitionMultiplier)))
+                        Text(
+                            (time - 1).secondsAsStr(),
+                            style = TextStyle(fontSize = 28.sp, color = Color.White.copy(alpha = transitionMultiplier))
+                        )
+                    }
+                }
+                else {
                     Text(
                         "Breath Out",
-                        style = TextStyle(fontSize = (28 * transitionMultiplier).sp,
-                            color = Color.White.copy(alpha = minOf(1.0f,transitionMultiplier+0.5f))
+                        style = TextStyle(
+                            fontSize = (28 * transitionMultiplier).sp,
+                            color = Color.White.copy(alpha = minOf(1.0f, transitionMultiplier + 0.5f))
                         )
                     )
+                }
             }
         }
     }
@@ -179,35 +187,7 @@ enum class SessionState{
     Prepare, Breathe, BreatheHold, BreatheInHold, Done;
 }
 
-@Composable
-@Preview
-fun DoneScreen(){
-    Box(modifier = Modifier.fillMaxSize(1f), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Breathing Session Done.", style = TextStyle(fontSize = 20.sp, color = Color.White))
-            Text("Great Job!", style = TextStyle(fontSize = 20.sp, color = Color.White))
-            OutlinedButton(onClick = { exitProcess(0) },
-            modifier = Modifier.offset (y = 20.dp )) {
-                Text(
-                    "Exit",
-                    style = TextStyle(fontSize = 14.sp)
-                )
-            }
-        }
-    }
-}
 
-@Composable
-@Preview
-fun PreviewTest(){
-    MaterialTheme {
-        Surface(modifier = Modifier.fillMaxSize(1f), color = Color.Black) {
-            Box(modifier = Modifier.width(400.dp).height(800.dp), contentAlignment = Alignment.Center) {
-                DoneScreen()
-            }
-        }
-    }
-}
 
 @Composable
 fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, audio: AudioPlay, setTransparent: (Boolean) -> Unit){
@@ -243,7 +223,6 @@ fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, audio: Audio
 
 
         fun incrementBreath() {
-            println(numBreaths)
             if(numBreaths < breathGoal){
                 numBreaths += 1
             }
@@ -264,8 +243,9 @@ fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, audio: Audio
         fun decreaseSpeed() { breathRate = breathRate.Decrease()}
 
         fun playSound(x: SoundType) {
-            if(sessState == SessionState.Breathe && x == SoundType.BreatheOut && numBreaths == breathGoal)
-                audio.play(x, 1200)
+            if(sessState == SessionState.Breathe && x == SoundType.BreatheOut && numBreaths == breathGoal) {
+                audio.play(x, BREATH_DELAY)
+            }
             else
                 audio.play(x)
         }
@@ -283,7 +263,7 @@ fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, audio: Audio
             BreathInScreen(winsize, finishedHold = ::incrementRound, playSound = ::playSound)
         else if(sessState == SessionState.Done) {
             setTransparent(false)
-            DoneScreen()
+            FinishScreen()
         }
         else{
 

@@ -10,6 +10,9 @@ plugins {
 group = "me.patrik"
 version = "1.0"
 
+val korauVersion = "2.4.10"
+val korioVersion = "2.4.10"
+
 repositories {
     google()
     mavenCentral()
@@ -19,6 +22,8 @@ repositories {
 dependencies {
     implementation(compose.desktop.currentOs)
     implementation("org.jetbrains.compose.material:material-icons-extended-desktop:1.0.0")
+    implementation("com.soywiz.korlibs.korau:korau-jvm:$korauVersion")
+    implementation("com.soywiz.korlibs.korio:korio-jvm:$korioVersion")
 }
 
 tasks.withType<KotlinCompile>() {
@@ -35,3 +40,4 @@ compose.desktop {
         }
     }
 }
+

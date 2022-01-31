@@ -14,6 +14,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SelfImprovement
+import androidx.compose.material.icons.filled.Spa
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -117,7 +118,7 @@ fun StartScreen(finishedSelection: (SessionData) -> Unit){
             shape = CircleShape,
             modifier = Modifier.size(100.dp)){
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Filled.SelfImprovement, "Start Breathing",
+                Icon(Icons.Filled.Spa, "Start Breathing",
                 modifier = Modifier.size(32.dp))
                 Spacer(modifier = Modifier.padding(vertical = 2.dp))
                 Text("Breathe!")
@@ -127,6 +128,13 @@ fun StartScreen(finishedSelection: (SessionData) -> Unit){
 
 }
 
+@Preview
+@Composable
+fun PreviewBreathsSelect(){
+    Surface(modifier = Modifier.fillMaxSize(1f), color = backColor) {
+        numBreathsSelector(30, { x -> println(x) })
+    }
+}
 @Composable
 fun numBreathsSelector(initialNumBreaths: Int, onBreathsChanged: (Int) -> Unit){
     //var numBreaths by remember { mutableStateOf(initialNumBreaths)}
@@ -165,13 +173,13 @@ fun numBreathsSelector(initialNumBreaths: Int, onBreathsChanged: (Int) -> Unit){
             shape = RoundedCornerShape(4.dp),
             modifier = Modifier.padding(horizontal=4.dp, vertical = 8.dp),
             border = BorderStroke(2.dp, color = MaterialTheme.colors.primaryVariant),
-            colors = ButtonDefaults.buttonColors(backgroundColor = backColor, contentColor = Color.LightGray)
+            colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primary, contentColor = Color.LightGray)
         ) {
             Text("5-")
         }
         BasicTextField(
-            modifier = Modifier.width(90.dp).requiredHeight(40.dp).padding(horizontal = 10.dp)
-                .border(2.dp, shape = RoundedCornerShape(5.dp), color = MaterialTheme.colors.primaryVariant)
+            modifier = Modifier.width(90.dp).requiredHeight(50.dp).padding(horizontal = 10.dp)
+                .border(2.dp, shape = RoundedCornerShape(50.dp), color = mainColorTemp)
                 .clickable(enabled = true, onClick = { }),
             value = text,
             singleLine = true,
@@ -182,8 +190,8 @@ fun numBreathsSelector(initialNumBreaths: Int, onBreathsChanged: (Int) -> Unit){
                               else if(it.isEmpty()) { text = "5" }
                             },
             textStyle = TextStyle(
-                color = Color.LightGray,
-                fontSize = 18.sp,
+                color = Color.White,
+                fontSize = 24.sp,
                 textAlign = TextAlign.Center,
                 //   lineHeight = 40.sp
             ),
@@ -195,7 +203,7 @@ fun numBreathsSelector(initialNumBreaths: Int, onBreathsChanged: (Int) -> Unit){
             shape = RoundedCornerShape(4.dp),
             modifier = Modifier.padding(horizontal=4.dp, vertical = 8.dp),
             border = BorderStroke(2.dp, color = MaterialTheme.colors.primaryVariant),
-            colors = ButtonDefaults.buttonColors(backgroundColor = backColor, contentColor = Color.LightGray))
+            colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primary, contentColor = Color.LightGray))
             {
                 Text("+5")
             }
@@ -211,7 +219,7 @@ fun holdTimesSelectGrid(numRoundsSelected: Int, onTimeChanged: (Map<Int,Int>) ->
         val backingField: ButtonClicked
             get() { return if(this.clicked && this.i != -1) this else ButtonClicked() }
     }
-    var buttonLabels = arrayOf(120,150,165,180,300,300)
+    var buttonLabels = arrayOf(120,150,165,180,300,360)
     var cardHeight = 64.dp
     var timeButtonHeight = 32.dp
     var showTimerPicker by remember { mutableStateOf(false)}
