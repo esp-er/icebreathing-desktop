@@ -15,15 +15,18 @@ enum class SoundType {
 }
 
 class AudioPlay(){
+
     private var breathOut: Sound
     private var breathIn: Sound
     private var triangle: Sound
-
+    private var ambient: Sound
+    private var channelList = mutableListOf<SoundChannel>()
     init{
         runBlocking{
             triangle = resourcesVfs["triangle_44k.wav"].readSound()
             breathIn = resourcesVfs["breatheIn_44k.wav"].readSound()
             breathOut = resourcesVfs["breatheOut_44k.wav"].readSound()
+            ambient = resourcesVfs["ambient.mp3"].readSound()
         }
     }
 
@@ -40,9 +43,23 @@ class AudioPlay(){
         }
     }
 
+    fun playMusic(){
+        thread(start = true){
+            runBlocking{
+                playSound(ambient, 0L)
+            }
+        }
+    }
     private suspend fun playSound(sound: Sound, initDelay: Long){
         delay(initDelay)
-        sound.play()
+        val channel = sound.play()
+        channelList.add(channel)
+        //channel.stop()
+    }
+
+    fun stopSounds(){
+        channelList.forEach{it.stop()}
+        channelList = mutableListOf<SoundChannel>()
     }
 
 }

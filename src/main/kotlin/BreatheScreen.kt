@@ -61,40 +61,11 @@ fun PrepareScreen(winsize: IntSize, roundNum: Int, breathGoal: Int, finishedPrep
     }
 }
 
-@Composable
-fun BreathHoldScreen(winsize: IntSize, timeLeft: Int,  finishedHold: (SessionState) -> Unit, playSound: (SoundType) -> Unit){
-    var time by remember { mutableStateOf(timeLeft)}
-    //NOTE: val timeText by remember { derivedStateOf {timeLeft.secondsAsStr()}}
-    //NOTE: Changing either a or b will cause CountDisplay to recompose but not trigger Example
-    // to recompose.
-    LaunchedEffect(true) {
-        playSound(SoundType.Triangle)
-        fixedRateTimer("timer", false, 0, 1000) {
-            time--
-        }
-    }
-    LaunchedEffect(time){
-        if (time <= 0) finishedHold(SessionState.BreatheHold)
-    }
-
-    Column(horizontalAlignment = Alignment.CenterHorizontally){
-        Text("Inhale In:", style = TextStyle(fontSize = 28.sp, color = Color.White))
-        Text(time.secondsAsStr(), style = TextStyle(fontSize = 28.sp, color = Color.White))
-        OutlinedButton(onClick = {finishedHold(SessionState.BreatheHold)}, modifier= Modifier.offset(y=20.dp),
-        shape = CircleShape) {
-            Icon(Icons.Outlined.CheckCircle, contentDescription = "Finish Holding")
-            //Spacer(modifier = Modifier.padding(horizontal = 2.dp))
-            //Text("Inhale")
-        }
-    }
-
-}
-
 enum class HoldState{
     Stop, Inhale, Exhale;
 }
 @Composable
-fun BreathInScreen(winsize: IntSize, timeLeft: Int = 17,  finishedHold: (SessionState) -> Unit, playSound: (SoundType) -> Unit){
+fun BreathInScreen(winsize: IntSize, timeLeft: Int = 17,  finishedHold: (SessionState) -> Unit, playSound: (SoundType) -> Unit, stopSound: () -> Unit){
     val holdTime = 16.0f //TODO: remove these magic values
     val progressDia = winsize.height / 1.5f
     var holdState by remember { mutableStateOf(HoldState.Stop)}
@@ -104,6 +75,7 @@ fun BreathInScreen(winsize: IntSize, timeLeft: Int = 17,  finishedHold: (Session
     //val timeText by remember { derivedStateOf {timeLeft.secondsAsStr()}}
 
     LaunchedEffect(true) {
+        stopSound()
         playSound(SoundType.BreatheIn)
         holdState = HoldState.Inhale
         fixedRateTimer("timer", false, 2000, 1000) {
@@ -155,7 +127,7 @@ fun BreathInScreen(winsize: IntSize, timeLeft: Int = 17,  finishedHold: (Session
 
     Column(horizontalAlignment = Alignment.CenterHorizontally){
         if(transition.currentState == HoldState.Stop){
-            Text("Breath In", style = TextStyle(fontSize = (transitionMultiplier * 28).sp, color = Color.White))
+            Text("Inhale!", style = TextStyle(fontSize = (transitionMultiplier * 28).sp, color = Color.White))
         }
         else{
             Box() {
@@ -246,8 +218,16 @@ fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, audio: Audio
             if(sessState == SessionState.Breathe && x == SoundType.BreatheOut && numBreaths == breathGoal) {
                 audio.play(x, BREATH_DELAY)
             }
-            else
+            else if(x == SoundType.Triangle){
                 audio.play(x)
+                audio.playMusic()
+            }
+            else {
+                audio.play(x)
+            }
+        }
+        fun stopSound() {
+            audio.stopSounds()
         }
 
         if(sessState == SessionState.Prepare){
@@ -260,7 +240,7 @@ fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, audio: Audio
                 ::transitionBreathing, ::playSound)
         }
         else if(sessState == SessionState.BreatheInHold)
-            BreathInScreen(winsize, finishedHold = ::incrementRound, playSound = ::playSound)
+            BreathInScreen(winsize, finishedHold = ::incrementRound, playSound = ::playSound, stopSound = ::stopSound)
         else if(sessState == SessionState.Done) {
             setTransparent(false)
             FinishScreen()
@@ -275,32 +255,67 @@ fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, audio: Audio
 
             //Overlay button alignments
             val pauseAlign = Modifier.align(Alignment.BottomCenter)
+            val soundAlign = Modifier.align(Alignment.BottomStart)
             val speedTextAlign = Modifier.align(Alignment.TopCenter)
             val leftAlign = Modifier.align(Alignment.CenterStart)
             val rightAlign = Modifier.align(Alignment.CenterEnd)
-            if(buttonVisible){
+            if(buttonVisible) {
                 RateButton(clickCallback = ::decreaseSpeed, mod = leftAlign)
-                if(breathRate != BreathRate.X1)
-                    Text(speedText, modifier = speedTextAlign, style = TextStyle(fontSize = 18.sp, color=Color.LightGray))
+                if (breathRate != BreathRate.X1)
+                    Text(
+                        speedText,
+                        modifier = speedTextAlign,
+                        style = TextStyle(fontSize = 18.sp, color = Color.LightGray)
+                    )
                 RateButton(isLeft = false, clickCallback = ::increaseSpeed, mod = rightAlign)
-                if(breathPaused){
-                    ContButton(::continueClicked, pauseAlign, 32.dp)
+                Row(modifier = Modifier.align(Alignment.BottomCenter)) {
+                    if (breathPaused) {
+                        ContButton(::continueClicked, pauseAlign, 24.dp)
+                    } else {
+                        PauseButton(::pauseClicked, pauseAlign, 24.dp)
+                    }
+
+                    FinishBreatheButton({}, pauseAlign, 24.dp)
                 }
-                else{
-                    PauseButton(::pauseClicked, pauseAlign, 32.dp)
-                }
+                SoundToggleButton({b -> println(b)}, soundAlign, 24.dp, true)
             }
         }
     }
 }
 
 @Composable
+fun FinishBreatheButton(finishClicked: () -> Unit, mod: Modifier, size: Dp){
+    IconButton(
+        onClick = {finishClicked()},
+        modifier= mod,
+    ) {
+        Icon(Icons.Outlined.CheckCircle, contentDescription = "Finish Breathing & Inhale", tint = Color.White,
+        modifier = Modifier.size(size,size))
+    }
+}
+
+@Composable
+fun SoundToggleButton(buttonClicked: (Boolean) -> Unit, mod: Modifier, size: Dp, soundEnabled: Boolean){
+    val enabled by remember {derivedStateOf { soundEnabled}}
+    IconButton(
+        onClick = { buttonClicked(enabled)},
+        modifier= mod,
+    ) {
+        if(enabled)
+            Icon(Icons.Outlined.VolumeUp, contentDescription = "Toggle Sound", tint = Color.White,
+                modifier = Modifier.size(size,size))
+        else
+            Icon(Icons.Outlined.VolumeOff, contentDescription = "Toggle Sound", tint = Color.White,
+                modifier = Modifier.size(size,size))
+    }
+}
+@Composable
 fun PauseButton(pauseClicked: () -> Unit, mod: Modifier, sz: Dp) {
     IconButton(
         onClick = { pauseClicked() },
         modifier = mod
     ){
-        Icon(Icons.Outlined.PauseCircle, "", tint = Color.White,
+        Icon(Icons.Outlined.Pause, "", tint = Color.White,
         modifier = Modifier.size(sz,sz))
     }
 }
@@ -311,7 +326,7 @@ fun ContButton(contClicked: () -> Unit, mod: Modifier, sz: Dp) {
         onClick = { contClicked() },
         modifier = mod
     ){
-        Icon(Icons.Outlined.PlayCircle, "", tint = Color.White,
+        Icon(Icons.Outlined.PlayArrow, "", tint = Color.White,
         modifier = Modifier.size(sz,sz))
     }
 }
