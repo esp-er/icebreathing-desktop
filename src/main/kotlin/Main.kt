@@ -28,6 +28,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.foundation.window.WindowDraggableArea
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.window.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -42,7 +43,7 @@ val secondColorTemp = Color(143, 180, 255)
 val mainColorTemp =
     Color(112, 197, 255)
 val backColor = Color(29, 43, 125)
-val backColorDark = Color(24, 39, 120)
+val backColorDark = Color(25, 40, 121).copy(alpha=0.7f)
 
 
 val audio = AudioPlay()
@@ -51,7 +52,7 @@ fun main() = application {
 
     //System.setProperty("skiko.renderApi", "OPENGL") //(Explicit) Not really necessary ("SOFTWARE" is too slow)
     val state = rememberWindowState(width = 450.dp, height = 580.dp, position = WindowPosition(1400.dp, 200.dp))
-    var pinWindow by remember{ mutableStateOf(true)}
+    var pinWindow by remember { mutableStateOf(false)}
 
     fun minimize(){ state.isMinimized = true}
     Window(onCloseRequest = ::exitApplication,
@@ -62,9 +63,7 @@ fun main() = application {
         alwaysOnTop = pinWindow
     ) {
 
-        fun pin() { pinWindow = !pinWindow}
-
-        App(audio, ::minimize, ::pin)
+        App(audio, ::minimize, { pinWindow = !pinWindow })
     }
 }
 
@@ -79,7 +78,7 @@ fun WindowScope.App(audio: AudioPlay, minimizeApp: () -> Unit, pin: () -> Unit) 
 
     var buttonVisible by remember { mutableStateOf(false)}
     val composableScope = rememberCoroutineScope()
-    var thisSession = SessionData(30, 6, emptyMap())
+    var thisSession by remember{ mutableStateOf( SessionData(30, 6, emptyMap()) )}
     fun showButtons() {
         composableScope.launch {
             if (!buttonVisible) {
@@ -121,14 +120,23 @@ fun WindowScope.App(audio: AudioPlay, minimizeApp: () -> Unit, pin: () -> Unit) 
 @Composable
 fun WindowScope.TitleBar(minimizeApp: () -> Unit, pinApp: () -> Unit) = WindowDraggableArea {
     Box(modifier = Modifier.fillMaxWidth(1f).height(24.dp).background(backColorDark)) {
-            val pinnedColor = Color.White
+            var color by remember { mutableStateOf(secondColorTemp) }
+
+            fun togglePinColor(currColor: Color): Color{
+                return if(currColor.value == secondColorTemp.value)
+                    Color.White
+                else
+                    secondColorTemp
+
+            }
+
             IconButton(
                 modifier = Modifier.then(Modifier.size(32.dp))
                     .align(Alignment.TopStart),
-                onClick = { pinApp() },
+                onClick = { pinApp(); color = togglePinColor(color) },
             ) {
                 Icon(
-                    Icons.Outlined.PushPin, "", tint = secondColorTemp,
+                    Icons.Outlined.PushPin, "", tint = color,
                     modifier = Modifier.size(18.dp, 18.dp)
                 )
             }

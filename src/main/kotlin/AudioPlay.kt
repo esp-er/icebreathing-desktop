@@ -54,11 +54,10 @@ class AudioPlay(){
         delay(initDelay)
         val channel = sound.play()
         channelList.add(channel)
-        //channel.stop()
     }
 
     fun stopSounds(){
-        channelList.forEach{it.stop()}
+        channelList.forEach{ it.stop() }
         channelList = mutableListOf<SoundChannel>()
     }
 
