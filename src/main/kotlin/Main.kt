@@ -30,13 +30,13 @@ import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.foundation.window.WindowDraggableArea
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.window.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlin.system.exitProcess
 
 
-//val secondColorTemp = Color(50, 220, 211)
-//val secondColorTemp = Color(125, 175,156)
 
 val secondColorTemp = Color(143, 180, 255)
 
@@ -46,26 +46,33 @@ val backColor = Color(29, 43, 125)
 val backColorDark = Color(25, 40, 121).copy(alpha=0.7f)
 
 
-val audio = AudioPlay()
 
-fun main() = application {
+fun main() =
+    application {
+        val audio = AudioPlay()
+        //System.setProperty("skiko.renderApi", "OPENGL") //(Explicit) Not really necessary ("SOFTWARE" is too slow)
+        val state =
+            rememberWindowState(width = 450.dp, height = 580.dp, position = WindowPosition(1400.dp, 200.dp))
+        var pinWindow by remember { mutableStateOf(false) }
 
-    //System.setProperty("skiko.renderApi", "OPENGL") //(Explicit) Not really necessary ("SOFTWARE" is too slow)
-    val state = rememberWindowState(width = 450.dp, height = 580.dp, position = WindowPosition(1400.dp, 200.dp))
-    var pinWindow by remember { mutableStateOf(false)}
+        fun minimize() {
+            state.isMinimized = true
+        }
+        Window(
+            onCloseRequest = ::exitApplication,
+            title = "Iceman Breathing",
+            state = state,
+            transparent = true,
+            undecorated = true,
+            alwaysOnTop = pinWindow
+        ) {
+            fun pin() {
+                pinWindow = !pinWindow
+            }
 
-    fun minimize(){ state.isMinimized = true}
-    Window(onCloseRequest = ::exitApplication,
-        title = "Iceman Breathing",
-        state = state,
-        transparent = true,
-        undecorated = true,
-        alwaysOnTop = pinWindow
-    ) {
-
-        App(audio, ::minimize, { pinWindow = !pinWindow })
+            App(audio, ::minimize, ::pin)
+        }
     }
-}
 
 
 @OptIn(ExperimentalComposeUiApi::class)
