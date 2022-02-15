@@ -282,8 +282,8 @@ fun breatheCanvas(
     }
 
     fun breatheText() = when(breatheState){
-        BreatheState.Paused -> "Paused"
-        BreatheState.Empty -> if(finalBreath){ if(breathRad/radiusEnd < 0.99) "Breathe\n   Out" else "Fully\n  In!"}
+        BreatheState.Paused -> StrRes.paused
+        BreatheState.Empty -> if(finalBreath){ if(breathRad/radiusEnd < 0.99) StrRes.breatheout else StrRes.fullyin}
         else currBreaths.toString()
         else -> if(finalBreath) "Fully\n  In!" else currBreaths.toString()
     }

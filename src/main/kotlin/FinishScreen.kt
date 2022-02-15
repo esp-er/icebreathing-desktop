@@ -21,8 +21,8 @@ import kotlin.system.exitProcess
 fun FinishScreen(){
     Box(modifier = Modifier.fillMaxSize(1f), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Breathing Session Finished.", style = TextStyle(fontSize = 20.sp, color = Color.White))
-            Text("Great Job!", style = TextStyle(fontSize = 20.sp, color = Color.White))
+            Text(StrRes.finished, style = TextStyle(fontSize = 20.sp, color = Color.White))
+            Text(StrRes.greeting, style = TextStyle(fontSize = 20.sp, color = Color.White))
             Row {
                 OutlinedButton(
                     onClick = { },
@@ -32,7 +32,7 @@ fun FinishScreen(){
                     Icon(Icons.Outlined.ArrowBack, contentDescription = "Start Over")
                     Spacer(modifier = Modifier.width(2.dp))
                     Text(
-                        "Back",
+                        StrRes.back,
                         style = TextStyle(fontSize = 14.sp)
                     )
                 }
@@ -45,7 +45,7 @@ fun FinishScreen(){
                     Icon(Icons.Outlined.Cancel, contentDescription = "Close Application")
                     Spacer(modifier = Modifier.width(2.dp))
                     Text(
-                        "Close",
+                        StrRes.close,
                         style = TextStyle(fontSize = 14.sp)
                     )
                 }

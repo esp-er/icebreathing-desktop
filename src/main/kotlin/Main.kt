@@ -46,10 +46,10 @@ val backColor = Color(29, 43, 125)
 val backColorDark = Color(25, 40, 121).copy(alpha=0.7f)
 
 
+val audio = AudioPlay()
 
 fun main() =
     application {
-        val audio = AudioPlay()
         //System.setProperty("skiko.renderApi", "OPENGL") //(Explicit) Not really necessary ("SOFTWARE" is too slow)
         val state =
             rememberWindowState(width = 450.dp, height = 580.dp, position = WindowPosition(1400.dp, 200.dp))

@@ -13,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.SelfImprovement
 import androidx.compose.material.icons.filled.Spa
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.runtime.*
@@ -28,7 +27,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.launch
 
 const val DEFAULT_ROUNDS = 2
 val DEF_HOLDMAP = mapOf(1 to 120, 2 to 150, 3 to 165, 4 to 185, 5 to 210, 6 to 230)
@@ -43,7 +41,6 @@ fun Int.secondsAsStr(): String {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-@Preview
 fun StartScreen(finishedSelection: (SessionData) -> Unit){
     var numRoundsSelected by remember { mutableStateOf(DEFAULT_ROUNDS + 1) }
     var numBreaths by remember { mutableStateOf(30)}
@@ -64,7 +61,7 @@ fun StartScreen(finishedSelection: (SessionData) -> Unit){
 
         Box(modifier = Modifier.size(400.dp, 80.dp), contentAlignment = Alignment.TopCenter) {
             Column(modifier = Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally)  {
-                Text("Breaths", textAlign = TextAlign.Center,
+                Text(StrRes.breaths, textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                     fontWeight = FontWeight.Medium,
                     style = TextStyle(fontSize = 16.sp, color = Color.LightGray))
@@ -75,7 +72,7 @@ fun StartScreen(finishedSelection: (SessionData) -> Unit){
 
         Box(modifier = Modifier.size(400.dp, 95.dp).offset(y = 5.dp)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally){
-                Text("Rounds", textAlign = TextAlign.Center,
+                Text(StrRes.rounds, textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 10.dp),
                 fontWeight = FontWeight.Medium,
                 color = Color.LightGray
@@ -121,7 +118,7 @@ fun StartScreen(finishedSelection: (SessionData) -> Unit){
                 Icon(Icons.Filled.Spa, "Start Breathing",
                 modifier = Modifier.size(32.dp))
                 Spacer(modifier = Modifier.padding(vertical = 2.dp))
-                Text("Breathe!")
+                Text(StrRes.start)
             }
         }
     }
@@ -175,7 +172,7 @@ fun numBreathsSelector(initialNumBreaths: Int, onBreathsChanged: (Int) -> Unit){
             border = BorderStroke(2.dp, color = MaterialTheme.colors.primaryVariant),
             colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primary, contentColor = Color.LightGray)
         ) {
-            Text("5-")
+            Text(StrRes.minus5)
         }
         BasicTextField(
             modifier = Modifier.width(90.dp).requiredHeight(50.dp).padding(horizontal = 10.dp)
@@ -205,7 +202,7 @@ fun numBreathsSelector(initialNumBreaths: Int, onBreathsChanged: (Int) -> Unit){
             border = BorderStroke(2.dp, color = MaterialTheme.colors.primaryVariant),
             colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primary, contentColor = Color.LightGray))
             {
-                Text("+5")
+                Text(StrRes.plus5)
             }
     }
 }
@@ -253,7 +250,7 @@ fun holdTimesSelectGrid(numRoundsSelected: Int, onTimeChanged: (Map<Int,Int>) ->
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            "Hold Times",
+            StrRes.holdtimes,
             color = Color.LightGray,
             textAlign = TextAlign.Start,
             fontWeight = FontWeight.Medium,

@@ -34,7 +34,7 @@ fun BreathHoldScreen(winsize: IntSize, timeLeft: Int, finishedHold: (SessionStat
     }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally){
-        Text("Inhale In:", style = TextStyle(fontSize = 28.sp, color = Color.White))
+        Text(StrRes.inhalein, style = TextStyle(fontSize = 28.sp, color = Color.White))
         Text(time.secondsAsStr(), style = TextStyle(fontSize = 28.sp, color = Color.White))
         OutlinedButton(onClick = {finishedHold(SessionState.BreatheHold)}, modifier= Modifier.offset(y=20.dp),
             shape = CircleShape

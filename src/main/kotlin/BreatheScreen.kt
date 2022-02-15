@@ -8,158 +8,22 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.animation.core.*
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.*
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlin.concurrent.fixedRateTimer
-import kotlin.system.exitProcess
 
 
 const val ANIM_MS = 1500
 const val BREATH_DELAY = 1200L
 val buttonDp = 32.dp
 
-private enum class PrepareState{
-    Start,End
-}
-
-@Composable
-@Preview
-fun PrepareScreen(winsize: IntSize, roundNum: Int, breathGoal: Int, finishedPrep: (SessionState) -> Unit){
-    var prepState by remember { mutableStateOf(PrepareState.Start)}
-    val transition = updateTransition(targetState = prepState)
-
-    LaunchedEffect(true){
-        prepState = PrepareState.End
-    }
-    LaunchedEffect(transition.currentState){
-        if (transition.currentState == PrepareState.End)
-            finishedPrep(SessionState.Prepare)
-    }
-    val textOpacity by transition.animateFloat(
-        transitionSpec ={ tween(3000,1000, LinearEasing)}
-    ) { state ->
-        when(state){
-            PrepareState.Start -> 1.0f
-            PrepareState.End -> 0.0f
-        }
-    }
-
-    Column(horizontalAlignment = Alignment.CenterHorizontally){
-        Text("Round $roundNum", style = TextStyle(fontSize = 28.sp, color = Color.White.copy(alpha = textOpacity)))
-        Text("Get Ready!", style = TextStyle(fontSize = 28.sp, color = Color.White.copy(alpha = textOpacity)))
-        Spacer(modifier = Modifier.height(30.dp))
-        Text("$breathGoal Breaths", style = TextStyle(fontSize = 16.sp, color = Color.White.copy(alpha = textOpacity)))
-    }
-}
-
-enum class HoldState{
-    Stop, Inhale, Exhale;
-}
-@Composable
-fun BreathInScreen(winsize: IntSize, timeLeft: Int = 17,  finishedHold: (SessionState) -> Unit, playSound: (SoundType) -> Unit, stopSound: () -> Unit){
-    val holdTime = 16.0f //TODO: remove these magic values
-    val progressDia = winsize.height / 1.5f
-    var holdState by remember { mutableStateOf(HoldState.Stop)}
-    val transition = updateTransition(targetState = holdState)
-    var time by remember { mutableStateOf(timeLeft)}
-    val timeProgress by remember { derivedStateOf {  (time - 1) / holdTime }}
-    //val timeText by remember { derivedStateOf {timeLeft.secondsAsStr()}}
-
-    LaunchedEffect(true) {
-        stopSound()
-        playSound(SoundType.BreatheIn)
-        holdState = HoldState.Inhale
-        fixedRateTimer("timer", false, 2000, 1000) {
-            if(time <= 2){
-                holdState = HoldState.Exhale
-            }
-            if(time > 0) time--
-        }
-    }
-    LaunchedEffect(holdState) {
-        if(holdState == HoldState.Exhale)
-            playSound(SoundType.BreatheOut)
-    }
-    LaunchedEffect(time){
-        if (time <= 0) {
-            delay(1000)
-                finishedHold(SessionState.BreatheInHold)
-            }
-    }
-
-    val countdownProgress by animateFloatAsState(
-        targetValue = timeProgress,
-        animationSpec = tween(1000, easing = LinearEasing)
-    )
-
-
-    val transitionMultiplier by transition.animateFloat(
-        transitionSpec = {if(holdState == HoldState.Exhale) tween(3000) else tween(2000) }
-    ) { state ->
-        when(state){
-            HoldState.Stop -> 0.0f
-            HoldState.Inhale -> 1.0f
-            HoldState.Exhale -> 0.0f
-        }
-    }
-
-    val progSize = DpSize(transitionMultiplier * progressDia.dp,
-        transitionMultiplier * progressDia.dp)
-
-    Canvas(modifier = Modifier.offset(0.dp,0.dp)) {
-        drawCircle(radius = (progressDia / 2.0f) * transitionMultiplier,
-            color = backColor)
-    }
-
-    CircularProgressIndicator(modifier = Modifier.size(progSize),
-        progress = maxOf(countdownProgress, 0f),
-        strokeWidth = (progressDia / 6.0f).dp,
-        color = secondColorTemp)
-
-    Column(horizontalAlignment = Alignment.CenterHorizontally){
-        if(transition.currentState == HoldState.Stop){
-            Text("Inhale!", style = TextStyle(fontSize = (transitionMultiplier * 28).sp, color = Color.White))
-        }
-        else{
-            Box() {
-                if(holdState == HoldState.Inhale) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Exhale In:", style = TextStyle(fontSize = 28.sp, color = Color.White.copy(alpha = transitionMultiplier)))
-                        Text(
-                            (time - 1).secondsAsStr(),
-                            style = TextStyle(fontSize = 28.sp, color = Color.White.copy(alpha = transitionMultiplier))
-                        )
-                    }
-                }
-                else {
-                    Text(
-                        "Breath Out",
-                        style = TextStyle(
-                            fontSize = (28 * transitionMultiplier).sp,
-                            color = Color.White.copy(alpha = minOf(1.0f, transitionMultiplier + 0.5f))
-                        )
-                    )
-                }
-            }
-        }
-    }
-}
-
-
 enum class SessionState{
     Prepare, Breathe, BreatheHold, BreatheInHold, Done;
 }
-
-
 
 @Composable
 fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, audio: AudioPlay, setTransparent: (Boolean) -> Unit){
@@ -219,11 +83,18 @@ fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, audio: Audio
                 audio.play(x, BREATH_DELAY)
             }
             else if(x == SoundType.Triangle){
+                audio.stopSounds()
                 audio.play(x)
-                audio.playMusic()
+                audio.playMusic(500L)
             }
             else {
                 audio.play(x)
+                if(sessState == SessionState.Breathe && numBreaths == 1 && x == SoundType.BreatheIn){
+                    if(roundNum > 2)
+                        audio.playMusic2("fluid")
+                    else
+                        audio.playMusic2("namaste")
+                }
             }
         }
         fun stopSound() {
@@ -232,7 +103,7 @@ fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, audio: Audio
 
         if(sessState == SessionState.Prepare){
             setTransparent(false)
-            PrepareScreen(winsize, roundNum, breathGoal, ::transitionBreathing)
+            TransitionScreen(winsize, roundNum, breathGoal, ::transitionBreathing)
         }
         else if(sessState == SessionState.BreatheHold) {
             setTransparent(true)
