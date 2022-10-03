@@ -8,5 +8,5 @@ Binary releases and Android version release coming soon!
 ![Screenshot](screenshots/iceman_full.png)
 
 
-Also see ![Guided Wim Hof breathing example on YouTube](https://www.youtube.com/watch?v=tybOi4hjZFQ),
+Also see [Guided Wim Hof breathing example on YouTube](https://www.youtube.com/watch?v=tybOi4hjZFQ),
 for an example of this breathing method.
