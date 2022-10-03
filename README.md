@@ -1,5 +1,7 @@
 # ![icon](icons/icebreathing_32.png) Ice Breathing
-Kotlin Multiplatform Wim Hof breathing-inspired breathing & meditation app made for Desktop OSes (with Jetpack and JetBrains Compose) \ Binary releases and Android version release coming soon!
+Kotlin Multiplatform Wim Hof breathing-inspired breathing & meditation app made for Desktop OSes (with Jetpack and JetBrains Compose)
+
+Binary releases and Android version release coming soon!
 
 ## Desktop Screenshot
 
