@@ -30,10 +30,7 @@ import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.foundation.window.WindowDraggableArea
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.window.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import kotlin.system.exitProcess
 
 
@@ -55,6 +52,16 @@ fun main() =
             rememberWindowState(width = 450.dp, height = 580.dp, position = WindowPosition(1400.dp, 200.dp))
         var pinWindow by remember { mutableStateOf(false) }
 
+
+        /*
+
+        LaunchedEffect(true) {
+            withContext(Dispatchers.IO) {
+                audio.initMusic()
+            }
+        }
+     */
+
         fun minimize() {
             state.isMinimized = true
         }
@@ -72,6 +79,7 @@ fun main() =
 
             App(audio, ::minimize, ::pin)
         }
+
     }
 
 
@@ -86,6 +94,7 @@ fun WindowScope.App(audio: AudioPlay, minimizeApp: () -> Unit, pin: () -> Unit) 
     var buttonVisible by remember { mutableStateOf(false)}
     val composableScope = rememberCoroutineScope()
     var thisSession by remember{ mutableStateOf( SessionData(30, 6, emptyMap()) )}
+
     fun showButtons() {
         composableScope.launch {
             if (!buttonVisible) {

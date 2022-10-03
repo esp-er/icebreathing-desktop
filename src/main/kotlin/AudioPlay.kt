@@ -8,6 +8,7 @@ import com.soywiz.korio.file.std.*
 import com.soywiz.krypto.Hash
 import kotlinx.coroutines.*
 import kotlin.concurrent.thread
+import kotlin.system.measureTimeMillis
 
 
 enum class SoundType {
@@ -20,58 +21,51 @@ class AudioPlay(){
     private var loadedSounds : HashMap<String, Sound> = HashMap<String,Sound>()
     private var channelList = mutableListOf<SoundChannel>()
     init{
-        thread(start = true){
-            runBlocking {
-                val triangle = resourcesVfs["triangle_44k.wav"].readSound()
-                loadedSounds["triangle"] = triangle
-                val breathIn = resourcesVfs["breatheIn_44k.wav"].readSound()
-                loadedSounds["breathin"] = breathIn
-                val breathOut = resourcesVfs["breatheOut_44k.wav"].readSound()
-                loadedSounds["breathout"] = breathOut
-                val ambient = resourcesVfs["ambient.mp3"].readSound()
+        runBlocking {
+            withContext(Dispatchers.IO) {
+                val triangle = async { resourcesVfs["triangle_44k.wav"].readSound() }
+                loadedSounds["triangle"] = triangle.await()
+                val breathIn = async { resourcesVfs["breatheIn_44k.wav"].readSound() }
+                loadedSounds["breathin"] = breathIn.await()
+                val breathOut = async { resourcesVfs["breatheOut_44k.wav"].readSound() }
+                loadedSounds["breathout"] = breathOut.await()
+                val ambient = resourcesVfs["ambient.mp3"].readMusic()
+                val fluid = resourcesVfs["watr-fluid.mp3"].readMusic()
+                val namaste = resourcesVfs["namaste_reenc.mp3"].readMusic()
+
                 loadedSounds["ambient"] = ambient
-                val fluid = resourcesVfs["watr-fluid.mp3"].readSound()
-                loadedSounds["fluid"] = fluid
-                val namaste = resourcesVfs["namaste_reenc.mp3"].readSound()
                 loadedSounds["namaste"] = namaste
+                loadedSounds["fluid"] = fluid
             }
         }
     }
 
-    fun play(whichSound: SoundType, initDelay: Long = 1) {
+    suspend fun play(whichSound: SoundType, initDelay: Long = 1) {
         val clip = when (whichSound) {
             SoundType.BreatheOut -> loadedSounds["breathout"]
             SoundType.BreatheIn -> loadedSounds["breathin"]
             else -> loadedSounds["triangle"]
         }
-        thread(start = true) {
-            runBlocking {
-                playSound(clip!!, initDelay)
-            }
-        }
+        playSound(clip!!, initDelay)
     }
 
     fun playMusic2(m: String){
         thread(start = true){
             runBlocking{
                 if(m == "fluid")
-                    playSound(loadedSounds["fluid"]!!, 1000L)
+                    loadedSounds["fluid"] ?: playSound(loadedSounds["fluid"]!!, 1000L)
                 else
-                    playSound(loadedSounds["namaste"]!!, 1000L)
+                    loadedSounds["namaste"] ?: playSound(loadedSounds["namaste"]!!, 1000L)
             }
         }
     }
 
-    fun playMusic(initDelay: Long = 1L){
-        thread(start = true){
-            runBlocking{
-                playSound(loadedSounds["ambient"]!!, initDelay)
-            }
-        }
+    suspend fun playMusic(initDelay: Long = 1L, musicName: String){
+        playSound(loadedSounds[musicName]!!, initDelay)
     }
     private suspend fun playSound(sound: Sound, initDelay: Long){
         delay(initDelay)
-        val channel = sound.playAndWait()
+        val channel = sound.play()
         //channelList.add(channel)
     }
 

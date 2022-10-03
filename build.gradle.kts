@@ -4,14 +4,14 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.6.10"
-    id("org.jetbrains.compose") version "1.0.1"
+    id("org.jetbrains.compose") version "1.1.1"
 }
 
 group = "me.patrik"
 version = "1.0"
 
-val korauVersion = "2.4.10"
-val korioVersion = "2.4.10"
+val korauVersion = "2.7.0"
+val korioVersion = "2.7.0"
 
 repositories {
     google()
@@ -21,7 +21,7 @@ repositories {
 
 dependencies {
     implementation(compose.desktop.currentOs)
-    implementation("org.jetbrains.compose.material:material-icons-extended-desktop:1.0.0")
+    implementation("org.jetbrains.compose.material:material-icons-extended-desktop:1.1.1")
     implementation("com.soywiz.korlibs.korau:korau-jvm:$korauVersion")
     implementation("com.soywiz.korlibs.korio:korio-jvm:$korioVersion")
 }

@@ -15,6 +15,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 
 const val ANIM_MS = 1500
@@ -80,21 +82,34 @@ fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, audio: Audio
 
         fun playSound(x: SoundType) {
             if(sessState == SessionState.Breathe && x == SoundType.BreatheOut && numBreaths == breathGoal) {
-                audio.play(x, BREATH_DELAY)
+                GlobalScope.launch {
+                    audio.play(x, BREATH_DELAY)
+                }
             }
             else if(x == SoundType.Triangle){
                 audio.stopSounds()
-                audio.play(x)
-                audio.playMusic(500L)
+                GlobalScope.launch {
+                    audio.play(x)
+                    when (roundNum) { //TODO: fix stopping at new round
+                        1 -> audio.playMusic(1000L, "ambient")
+                        2 -> audio.playMusic(1000L, "fluid")
+                        3 -> audio.playMusic(1000L, "ambient")
+                        else -> audio.playMusic(1000L, "fluid")
+                        //4 -> audio.playMusic(500L, "namaste") //TODO:namaste file seems broken
+                    }
+                }
             }
-            else {
-                audio.play(x)
+            else { // Play when breathing
+                GlobalScope.launch {
+                    audio.play(x)
+                }
+                /*
                 if(sessState == SessionState.Breathe && numBreaths == 1 && x == SoundType.BreatheIn){
                     if(roundNum > 2)
                         audio.playMusic2("fluid")
                     else
                         audio.playMusic2("namaste")
-                }
+                }*/
             }
         }
         fun stopSound() {
