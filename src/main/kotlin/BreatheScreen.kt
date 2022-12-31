@@ -28,7 +28,7 @@ enum class SessionState{
 }
 
 @Composable
-fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, audio: AudioPlay, setTransparent: (Boolean) -> Unit){
+fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, clickedBack: () -> Unit, audio: AudioPlay, setTransparent: (Boolean) -> Unit){
     var winsize by remember{ mutableStateOf(IntSize(400,400))}
     var roundNum by remember{ mutableStateOf(1)}
     val roundGoal by remember{ mutableStateOf(thisSession.numRounds)}
@@ -57,6 +57,11 @@ fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, audio: Audio
                     SessionState.BreatheInHold -> SessionState.Prepare
                     else -> SessionState.Done
                 }
+        }
+
+        fun goToStart(){
+            transitionBreathing(SessionState.Done)
+            clickedBack()
         }
 
 
@@ -140,11 +145,14 @@ fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, audio: Audio
                 playSound = ::playSound)
 
             //Overlay button alignments
-            val pauseAlign = Modifier.align(Alignment.BottomCenter)
-            val soundAlign = Modifier.align(Alignment.BottomStart)
+            val pauseAlign = Modifier.align(Alignment.BottomCenter).padding(8.dp)
             val speedTextAlign = Modifier.align(Alignment.TopCenter)
             val leftAlign = Modifier.align(Alignment.CenterStart)
             val rightAlign = Modifier.align(Alignment.CenterEnd)
+            val backModifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(8.dp)
+
             if(buttonVisible) {
                 RateButton(clickCallback = ::decreaseSpeed, mod = leftAlign)
                 if (breathRate != BreathRate.X1)
@@ -163,8 +171,10 @@ fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, audio: Audio
 
                     FinishBreatheButton({}, pauseAlign, 24.dp)
                 }
-                SoundToggleButton({b -> println(b)}, soundAlign, 24.dp, true)
             }
+            BackButton(backClicked = ::goToStart,
+                mod = backModifier,
+                size = 24.dp )
         }
     }
 }

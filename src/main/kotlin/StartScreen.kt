@@ -6,8 +6,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.GridCells
-import androidx.compose.foundation.lazy.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -169,14 +169,13 @@ fun numBreathsSelector(initialNumBreaths: Int, onBreathsChanged: (Int) -> Unit){
         OutlinedButton(onClick = ::dec5,
             shape = RoundedCornerShape(4.dp),
             modifier = Modifier.padding(horizontal=4.dp, vertical = 8.dp),
-            border = BorderStroke(2.dp, color = MaterialTheme.colors.primaryVariant),
             colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primary, contentColor = Color.LightGray)
         ) {
             Text(StrRes.minus5)
         }
         BasicTextField(
             modifier = Modifier.width(90.dp).requiredHeight(50.dp).padding(horizontal = 10.dp)
-                .border(2.dp, shape = RoundedCornerShape(50.dp), color = mainColorTemp)
+                .border(2.dp, shape = RoundedCornerShape(24.dp), color = mainColorTemp)
                 .clickable(enabled = true, onClick = { }),
             value = text,
             singleLine = true,
@@ -199,7 +198,6 @@ fun numBreathsSelector(initialNumBreaths: Int, onBreathsChanged: (Int) -> Unit){
         OutlinedButton(onClick = ::inc5,
             shape = RoundedCornerShape(4.dp),
             modifier = Modifier.padding(horizontal=4.dp, vertical = 8.dp),
-            border = BorderStroke(2.dp, color = MaterialTheme.colors.primaryVariant),
             colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primary, contentColor = Color.LightGray))
             {
                 Text(StrRes.plus5)
@@ -257,7 +255,7 @@ fun holdTimesSelectGrid(numRoundsSelected: Int, onTimeChanged: (Map<Int,Int>) ->
             modifier = Modifier.padding(horizontal = 10.dp)
         )
         LazyVerticalGrid(
-            cells = GridCells.Fixed(cellsPerRow(numRoundsSelected)),
+            columns = GridCells.Fixed(cellsPerRow(numRoundsSelected)),
             contentPadding = PaddingValues(10.dp),
             modifier = Modifier.align(Alignment.CenterHorizontally).onGloballyPositioned { coords -> coords.size}
         ) {
@@ -272,7 +270,7 @@ fun holdTimesSelectGrid(numRoundsSelected: Int, onTimeChanged: (Map<Int,Int>) ->
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
-                        Text("Round ${item + 1}", fontWeight = FontWeight.Medium)
+                        Text("Round ${item + 1}", fontWeight = FontWeight.Medium, color = Color.White)
 
                         Button(
                             onClick = { showTimerPicker = true; lastClickedIndex = ButtonClicked(true, item)},
@@ -310,16 +308,25 @@ fun timeSliderCard(initialTime: Int, onTimeChanged: (Int) -> Unit){
     val sliderSeconds by remember { derivedStateOf { sliderValue.toInt() }}
     val timeText by remember { derivedStateOf { sliderSeconds.secondsAsStr() }}
 
+    val selectorColors = SliderDefaults.colors(thumbColor = MaterialTheme.colors.onSurface, activeTrackColor = MaterialTheme.colors.onSurface)
+
     Card(modifier = Modifier.width(400.dp).height(64.dp).padding(horizontal = 16.dp),
-    backgroundColor = MaterialTheme.colors.secondary) {
+    backgroundColor = MaterialTheme.colors.secondaryVariant) {
         Box(modifier = Modifier.padding(10.dp)) {
-            Text(text = timeText, fontWeight = FontWeight.Medium)
+            Text(text = timeText,
+                fontWeight = FontWeight.Medium,
+                color = Color.White
+            )
+
             Slider(
                 modifier = Modifier.offset(y = 10.dp).align(Alignment.Center),
                 value = sliderValue,
                 valueRange = minValue..maxValue,
                 steps = 0,
-                onValueChange = { sliderValue = it; onTimeChanged(sliderSeconds)}
+                onValueChange = { sliderValue = it; onTimeChanged(sliderSeconds)
+                    //colors = SliderDefaults.colors()
+                },
+                colors = selectorColors
             )
         }
     }

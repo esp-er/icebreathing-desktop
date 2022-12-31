@@ -32,7 +32,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.window.*
 import kotlinx.coroutines.*
 import kotlin.system.exitProcess
-
+import patriker.breathing.iceman.ui.*
 
 
 val secondColorTemp = Color(143, 180, 255)
@@ -107,7 +107,11 @@ fun WindowScope.App(audio: AudioPlay, minimizeApp: () -> Unit, pin: () -> Unit) 
     fun setTransparent(t: Boolean = false) {
         transparency = if(t) 0.2f else 1f
     }
-    MaterialTheme {
+    fun clickedBack(){
+        //loadSettings(appConfig)
+        AppState.screenState(ScreenType.Start)
+    }
+    IceBreathingTheme {
         Surface(shape = RoundedCornerShape(8.dp),
             border = BorderStroke(1.dp, color = mainColorTemp),
             color = backColor.copy(alpha=transparency),
@@ -127,7 +131,7 @@ fun WindowScope.App(audio: AudioPlay, minimizeApp: () -> Unit, pin: () -> Unit) 
                 StartScreen(::clickedStartBreathing)
             }
             else{
-                BreatheScreen(buttonVisible, thisSession, audio, ::setTransparent)
+                BreatheScreen(buttonVisible, thisSession, ::clickedBack, audio, ::setTransparent)
             }
         }
     }

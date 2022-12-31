@@ -5,7 +5,8 @@ Binary releases and Android version release coming soon!
 
 ## Desktop Screenshot
 
-![Screenshot](screenshots/iceman_full.png)
+![Start Screen](screenshots/icedesktop_start.png)
+![Breathe Screen](screenshots/icedesktop_breathe.png)
 
 
 Also see [Guided Wim Hof breathing example on YouTube](https://www.youtube.com/watch?v=tybOi4hjZFQ),

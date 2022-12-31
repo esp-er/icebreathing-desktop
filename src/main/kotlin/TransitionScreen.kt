@@ -51,10 +51,12 @@ fun TransitionScreen(winsize: IntSize, roundNum: Int, breathGoal: Int, finishedP
     }
 }
 
+/*
 @Preview
 @Composable
 fun PreviewTransition(){ //Previewing animated content seems problematic
     TransitionScreen(IntSize(400, 400), 1, 40) { s: SessionState -> println(s) }
 }
+ */
 
 
