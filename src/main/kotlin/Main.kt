@@ -114,7 +114,7 @@ fun WindowScope.App(audio: AudioPlay, minimizeApp: () -> Unit, pin: () -> Unit) 
     IceBreathingTheme {
         Surface(shape = RoundedCornerShape(8.dp),
             border = BorderStroke(1.dp, color = mainColorTemp),
-            color = backColor.copy(alpha=transparency),
+            color = MaterialTheme.colors.background,
             modifier = Modifier.fillMaxSize(1f)
                 .pointerMoveFilter (onMove = { showButtons(); false })
         ){
@@ -139,7 +139,7 @@ fun WindowScope.App(audio: AudioPlay, minimizeApp: () -> Unit, pin: () -> Unit) 
 
 @Composable
 fun WindowScope.TitleBar(minimizeApp: () -> Unit, pinApp: () -> Unit) = WindowDraggableArea {
-    Box(modifier = Modifier.fillMaxWidth(1f).height(24.dp).background(backColorDark)) {
+    Box(modifier = Modifier.fillMaxWidth(1f).height(24.dp).background(MaterialTheme.colors.background)) {
             var color by remember { mutableStateOf(secondColorTemp) }
 
             fun togglePinColor(currColor: Color): Color{

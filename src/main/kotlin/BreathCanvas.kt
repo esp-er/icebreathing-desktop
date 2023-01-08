@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.pow
@@ -38,6 +39,7 @@ fun breatheCanvas(
     totalBreaths: Int,
     onFinishBreath: () -> Unit,
     breathPaused: Boolean,
+    finishClicked: Boolean,
     animSpeed: Int,
     playSound: (SoundType) -> Unit
 ) {
@@ -85,6 +87,13 @@ fun breatheCanvas(
         }
     }
 
+    LaunchedEffect(finishClicked) {
+        if(finishClicked){
+            finalBreath = true
+            breatheState = BreatheState.Full
+        }
+    }
+
 
     val transit = updateTransition(targetState = breatheState)
 
@@ -106,8 +115,8 @@ fun breatheCanvas(
     val fontColor by transit.animateColor({ tween(animSpeed) }) { state ->
         when (state) {
             BreatheState.Full -> backColor
-            BreatheState.Empty -> Color.DarkGray
-            BreatheState.Paused -> Color.DarkGray
+            BreatheState.Empty -> backColor
+            BreatheState.Paused -> Color.White
         }
     }
 
@@ -283,7 +292,7 @@ fun breatheCanvas(
 
     fun breatheText() = when(breatheState){
         BreatheState.Paused -> StrRes.paused
-        BreatheState.Empty -> if(finalBreath){ if(breathRad/radiusEnd < 0.99) StrRes.breatheout else StrRes.fullyin}
+        BreatheState.Empty -> if(finalBreath){ if(breathRad/radiusEnd < 0.999) StrRes.breatheout else StrRes.fullyin}
         else currBreaths.toString()
         else -> if(finalBreath) "Fully\n  In!" else currBreaths.toString()
     }
@@ -293,15 +302,20 @@ fun breatheCanvas(
         else fontColor.copy(alpha=breathRadDelayed/radiusEnd)
     }
 
+    fun breatheTextSize(): TextUnit {
+        return if(breathPaused) radiusEnd.sp
+        else if(finalBreath) (radiusEnd / 3.5).sp
+        else (radiusEnd  / 2.7).sp
+    }
+
     //TODO: copy text style into shadow text style and enable the shadow
     Text(
         breatheText(),
-        fontSize = if(breathPaused) radiusEnd.sp else (radiusEnd  / 2.7).sp,
+        fontSize = breatheTextSize(),
         color = breatheTextColor(),
         modifier = Modifier.offset(0.dp, (10f - (breathRad / 3)).dp),
         fontWeight = FontWeight.Bold,
         //style = TextStyle(shadow = Shadow(color = Color.Black, offset = Offset(4f,4f)))
     )
-
 
 }

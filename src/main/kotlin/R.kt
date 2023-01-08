@@ -32,9 +32,10 @@ object StrRes{
     val greeting: String
     val back: String
     val close: String
+    val holdbreath: String
 
     init{
-        start = "Breathe!"
+        start = "Start!"
         exhale = "Exhale"
         rounds = "Rounds"
         round = "Round"
@@ -44,6 +45,9 @@ object StrRes{
         breatheout = "Breathe\n  Out"
         plus5 = "5+"
         minus5 = "5-"
+
+
+        holdbreath = "Hold"
 
         getready = "Get Ready!"
 

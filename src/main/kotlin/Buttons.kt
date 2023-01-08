@@ -1,5 +1,6 @@
 package patriker.breathing.iceman
 
+import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -9,9 +10,9 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.OutlinedButton
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.Pause
+import androidx.compose.material.icons.filled.FastForward
+import androidx.compose.material.icons.filled.FastRewind
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,7 +51,6 @@ fun BackButton(backClicked: () -> Unit, mod: Modifier, size: Dp){
     }
 }
 
-/*
 @Composable
 fun PauseButton(pauseClicked: () -> Unit, mod: Modifier, sz: Dp) {
     IconButton(
@@ -61,4 +61,35 @@ fun PauseButton(pauseClicked: () -> Unit, mod: Modifier, sz: Dp) {
             modifier = Modifier.size(sz,sz))
     }
 }
- */
+
+@Composable
+fun ContButton(contClicked: () -> Unit, mod: Modifier, sz: Dp) {
+    IconButton(
+        onClick = { contClicked() },
+        modifier = mod
+    ){
+        Icon(Icons.Outlined.PlayArrow, "", tint = Color.White,
+            modifier = Modifier.size(sz,sz))
+    }
+}
+
+
+@Composable
+@Preview
+fun RateButton(isLeft: Boolean = true, clickCallback: () -> Unit,
+               mod: Modifier,
+               size: Dp) {
+    IconButton(
+        onClick = { clickCallback() },
+        modifier = mod
+    ){
+        if(isLeft)
+            Icon(Icons.Outlined.FastRewind, "Decrease Speed",
+                tint = Color.White,
+                modifier = Modifier.size(size, size))
+        else
+            Icon(Icons.Outlined.FastForward, "Increase Speed",
+                tint = Color.White,
+                modifier = Modifier.size(size, size))
+    }
+}
