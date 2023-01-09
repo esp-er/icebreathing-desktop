@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.sp
 const val DEFAULT_ROUNDS = 2
 val DEF_HOLDMAP = mapOf(1 to 120, 2 to 150, 3 to 165, 4 to 185, 5 to 210, 6 to 230)
 
-data class SessionData(val numBreaths: Int, val numRounds: Int, val breathHoldTime: Map<Int,Int>)
 
 fun Int.secondsAsStr(): String {
     val minutes = this / 60
@@ -298,8 +297,8 @@ fun holdTimesSelectGrid(numRoundsSelected: Int, onTimeChanged: (Map<Int,Int>) ->
 
 @Composable
 fun timeSliderCard(initialTime: Int, onTimeChanged: (Int) -> Unit){
-    val minValue = 30f
-    val maxValue = 510f
+    val minValue = 10f
+    val maxValue = 600f
     var sliderValue by remember {   if(initialTime <= 30) mutableStateOf(0f)
                                     else mutableStateOf(initialTime.toFloat()) }
     LaunchedEffect(initialTime){

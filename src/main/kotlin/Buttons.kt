@@ -14,29 +14,12 @@ import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-
-/*
-@Composable
-fun FinishBreatheButton(finishClicked: () -> Unit, mod: Modifier, size: Dp){
-
-    OutlinedButton(onClick = {finishClicked()}, modifier= mod,
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.buttonColors()
-    ) {
-        Spacer(modifier = Modifier.width(4.dp))
-        Icon(
-            Icons.Outlined.CheckCircle,
-            contentDescription = "Finish Breathing",
-            modifier = Modifier.size(size))
-        Spacer(modifier = Modifier.width(4.dp))
-    }
-}
- */
 
 @Composable
 fun BackButton(backClicked: () -> Unit, mod: Modifier, size: Dp){
@@ -75,6 +58,19 @@ fun ContButton(contClicked: () -> Unit, mod: Modifier, sz: Dp) {
 
 
 @Composable
+fun FinishBreatheButton(finishClicked: () -> Unit, mod: Modifier, size: Dp){
+    IconButton(
+        onClick = {finishClicked()},
+        modifier= mod,
+    ) {
+        Icon(Icons.Outlined.CheckCircle, contentDescription = "Finish Breathing & Inhale", tint = Color.White,
+        modifier = Modifier.size(size,size))
+    }
+}
+
+
+
+@Composable
 @Preview
 fun RateButton(isLeft: Boolean = true, clickCallback: () -> Unit,
                mod: Modifier,
@@ -93,3 +89,20 @@ fun RateButton(isLeft: Boolean = true, clickCallback: () -> Unit,
                 modifier = Modifier.size(size, size))
     }
 }
+
+@Composable
+fun SoundToggleButton(buttonClicked: (Boolean) -> Unit, mod: Modifier, size: Dp, soundEnabled: Boolean){
+    val enabled by remember {derivedStateOf { soundEnabled}}
+    IconButton(
+        onClick = { buttonClicked(enabled)},
+        modifier= mod,
+    ) {
+        if(enabled)
+            Icon(Icons.Outlined.VolumeUp, contentDescription = "Toggle Sound", tint = Color.White,
+                modifier = Modifier.size(size,size))
+        else
+            Icon(Icons.Outlined.VolumeOff, contentDescription = "Toggle Sound", tint = Color.White,
+                modifier = Modifier.size(size,size))
+    }
+}
+

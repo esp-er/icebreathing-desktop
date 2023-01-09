@@ -134,10 +134,13 @@ fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, clickedBack:
                 ::transitionBreathing, ::playSound, ::goToStart)
         }
         else if(sessState == SessionState.BreatheInHold)
-            BreathInScreen(winsize, finishedHold = ::incrementRound, playSound = ::playSound, stopSound = ::stopSound)
+            BreathInScreen(winsize, finishedHold = ::incrementRound,
+                           playSound = ::playSound,
+                           stopSound = ::stopSound,
+                            clickedBack = clickedBack)
         else if(sessState == SessionState.Done) {
             setTransparent(false)
-            FinishScreen()
+            FinishScreen(thisSession, clickedBack)
         }
         else{
 
@@ -186,30 +189,4 @@ fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, clickedBack:
     }
 }
 
-@Composable
-fun FinishBreatheButton(finishClicked: () -> Unit, mod: Modifier, size: Dp){
-    IconButton(
-        onClick = {finishClicked()},
-        modifier= mod,
-    ) {
-        Icon(Icons.Outlined.CheckCircle, contentDescription = "Finish Breathing & Inhale", tint = Color.White,
-        modifier = Modifier.size(size,size))
-    }
-}
-
-@Composable
-fun SoundToggleButton(buttonClicked: (Boolean) -> Unit, mod: Modifier, size: Dp, soundEnabled: Boolean){
-    val enabled by remember {derivedStateOf { soundEnabled}}
-    IconButton(
-        onClick = { buttonClicked(enabled)},
-        modifier= mod,
-    ) {
-        if(enabled)
-            Icon(Icons.Outlined.VolumeUp, contentDescription = "Toggle Sound", tint = Color.White,
-                modifier = Modifier.size(size,size))
-        else
-            Icon(Icons.Outlined.VolumeOff, contentDescription = "Toggle Sound", tint = Color.White,
-                modifier = Modifier.size(size,size))
-    }
-}
 

@@ -23,6 +23,7 @@ object StrRes{
     val inhalein: String
     val inhale: String
     val exhalein: String
+    val holdbreath: String
 
     //Canvas
     val paused: String
@@ -32,7 +33,11 @@ object StrRes{
     val greeting: String
     val back: String
     val close: String
-    val holdbreath: String
+
+    val awesome: String
+    val ufinished: String
+
+    val heldbreath: String
 
     init{
         start = "Start!"
@@ -41,13 +46,13 @@ object StrRes{
         round = "Round"
         breaths = "Breaths"
         holdtimes = "Hold Times"
-        fullyin = "Fully\n  In!"
-        breatheout = "Breathe\n  Out"
+        fullyin = "Fully\n In!"
+        breatheout = "Breathe\n Out"
         plus5 = "5+"
         minus5 = "5-"
 
-
         holdbreath = "Hold"
+        heldbreath = "You breath held for"
 
         getready = "Get Ready!"
 
@@ -58,6 +63,9 @@ object StrRes{
 
         finished = "Breathing Session Finished."
         greeting = "Great Job!"
+        awesome = "Awesome Job!"
+
+        ufinished = "You finished"
         close = "Close"
         back = "Back"
 

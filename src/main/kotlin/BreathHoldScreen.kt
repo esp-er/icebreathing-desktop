@@ -27,7 +27,7 @@ import kotlin.concurrent.fixedRateTimer
 
 
 @Composable
-fun BreathHoldScreen(winsize: IntSize, timeLeft: Int, finishedHold: (SessionState) -> Unit, playSound: (SoundType) -> Unit,
+fun BreathHoldScreen(winsize: IntSize, timeLeft: Int, transitionScreen: (SessionState) -> Unit, playSound: (SoundType) -> Unit,
                      clickedBack : () -> Unit){
     var time by remember { mutableStateOf(timeLeft) }
     var paused by rememberSaveable { mutableStateOf(false) }
@@ -47,6 +47,13 @@ fun BreathHoldScreen(winsize: IntSize, timeLeft: Int, finishedHold: (SessionStat
         paused = !paused
     }
 
+
+    fun finishClicked(){
+        time = 0
+        transitionScreen(SessionState.BreatheHold)
+    }
+
+
     LaunchedEffect(true) {
         playSound(SoundType.Triangle)
         fixedRateTimer("timer", false, 0, 1000) {
@@ -55,7 +62,7 @@ fun BreathHoldScreen(winsize: IntSize, timeLeft: Int, finishedHold: (SessionStat
         }
     }
     LaunchedEffect(time){
-        if (time <= 0) finishedHold(SessionState.BreatheHold)
+        if (time <= 0) transitionScreen(SessionState.BreatheHold)
     }
 
     Canvas(modifier = Modifier.offset(0.dp, 0.dp)) {
@@ -110,6 +117,14 @@ fun BreathHoldScreen(winsize: IntSize, timeLeft: Int, finishedHold: (SessionStat
             mod = Modifier.align(Alignment.BottomCenter)
                 .padding(8.dp),
             sz = 24.dp
+        )
+
+        FinishBreatheButton(
+            finishClicked = { finishClicked() },
+            mod = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(8.dp),
+            size = 32.dp
         )
     }
 }
