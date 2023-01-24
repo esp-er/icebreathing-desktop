@@ -55,7 +55,7 @@ fun BreathHoldScreen(winsize: IntSize, timeLeft: Int, transitionScreen: (Session
 
 
     LaunchedEffect(true) {
-        playSound(SoundType.Triangle)
+        //playSound(SoundType.Triangle)
         fixedRateTimer("timer", false, 0, 1000) {
             if(!paused)
                 time--

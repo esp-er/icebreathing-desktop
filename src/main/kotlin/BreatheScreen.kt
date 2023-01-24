@@ -94,7 +94,7 @@ fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, clickedBack:
                     audio.play(x, BREATH_DELAY)
                 }
             }
-            else if(x == SoundType.Triangle){
+            /*else if(x == SoundType.Triangle){
                 audio.stopSounds()
                 GlobalScope.launch {
                     audio.play(x)
@@ -106,18 +106,11 @@ fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, clickedBack:
                         //4 -> audio.playMusic(500L, "namaste") //TODO:namaste file seems broken
                     }
                 }
-            }
+            }*/
             else { // Play when breathing
                 GlobalScope.launch {
                     audio.play(x)
                 }
-                /*
-                if(sessState == SessionState.Breathe && numBreaths == 1 && x == SoundType.BreatheIn){
-                    if(roundNum > 2)
-                        audio.playMusic2("fluid")
-                    else
-                        audio.playMusic2("namaste")
-                }*/
             }
         }
         fun stopSound() {
@@ -137,6 +130,7 @@ fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, clickedBack:
             BreathInScreen(winsize, finishedHold = ::incrementRound,
                            playSound = ::playSound,
                            stopSound = ::stopSound,
+                           transitionScreen = ::transitionBreathing,
                             clickedBack = clickedBack)
         else if(sessState == SessionState.Done) {
             setTransparent(false)

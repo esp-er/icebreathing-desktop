@@ -30,6 +30,7 @@ fun BreathInScreen(winsize: IntSize,
                    timeLeft: Int = 17, finishedHold: (SessionState) -> Unit,
                    playSound: (SoundType) -> Unit,
                    stopSound: () -> Unit,
+                   transitionScreen: (SessionState) -> Unit,
                    clickedBack: () -> Unit){
     val holdTime = 16.0f //TODO: remove these magic values
     val progressDia = winsize.height / 1.5f
@@ -45,6 +46,11 @@ fun BreathInScreen(winsize: IntSize,
         paused = !paused
     }
 
+    fun finishClicked(){
+        time = 0
+        transitionScreen(SessionState.BreatheInHold)
+    }
+
     LaunchedEffect(true) {
         playSound(SoundType.BreatheIn)
         holdState = HoldState.Inhale
@@ -52,7 +58,7 @@ fun BreathInScreen(winsize: IntSize,
             if(time <= 2){
                 holdState = HoldState.Exhale
             }
-            if(time > 0) time--
+            if(time > 0 && !paused) time--
         }
     }
     LaunchedEffect(holdState) {
@@ -174,13 +180,13 @@ fun BreathInScreen(winsize: IntSize,
             .align(Alignment.BottomCenter)
             .padding(8.dp)
         if (paused) {
-            ContButton(::togglePause, pauseAlign, 36.dp)
+            ContButton(::togglePause, pauseAlign, sz = 24.dp)
         } else {
-            PauseButton(::togglePause, pauseAlign, 36.dp)
+            PauseButton(::togglePause, pauseAlign, sz = 24.dp)
         }
 
         FinishBreatheButton(
-            finishClicked = { },
+            finishClicked = { finishClicked() },
             mod = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(8.dp),

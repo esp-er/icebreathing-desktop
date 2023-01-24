@@ -23,12 +23,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.toAwtImage
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.foundation.window.WindowDraggableArea
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.window.*
 import kotlinx.coroutines.*
 import kotlin.system.exitProcess
@@ -48,6 +52,7 @@ val audio = AudioPlay()
 fun main() =
     application {
         //System.setProperty("skiko.renderApi", "OPENGL") //(Explicit) Not really necessary ("SOFTWARE" is too slow)
+        System.setProperty("skiko.vsync.enabled", "false")
         val state =
             rememberWindowState(width = 450.dp, height = 580.dp, position = WindowPosition(1400.dp, 200.dp))
         var pinWindow by remember { mutableStateOf(false) }
@@ -73,6 +78,13 @@ fun main() =
             undecorated = true,
             alwaysOnTop = pinWindow
         ) {
+
+            val icon = painterResource("icebreathing_256.png")
+            val density = LocalDensity.current
+            SideEffect {
+                window.iconImage = icon.toAwtImage(density, LayoutDirection.Ltr, Size(256f, 256f))
+            }
+
             fun pin() {
                 pinWindow = !pinWindow
             }
