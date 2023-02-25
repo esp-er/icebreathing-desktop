@@ -1,4 +1,4 @@
-package patriker.breathing.iceman
+package io.github.esp_er.icebreathing
 
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable

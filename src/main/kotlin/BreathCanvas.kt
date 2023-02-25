@@ -1,9 +1,6 @@
-package patriker.breathing.iceman
-
+package io.github.esp_er.icebreathing
 import androidx.compose.animation.animateColor
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.updateTransition
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material.MaterialTheme
@@ -13,13 +10,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.createFontFamilyResolver
+import androidx.compose.ui.unit.*
 import kotlin.math.pow
 
 
@@ -31,6 +28,8 @@ enum class LeafPos{
     TopLeft, TopRight, BottomLeft, BottomRight, Top, Center
 }
 
+
+
 @Composable
 fun breatheCanvas(
     changeRadius: IntSize,
@@ -41,7 +40,6 @@ fun breatheCanvas(
     breathPaused: Boolean,
     finishClicked: Boolean,
     animSpeed: Int,
-    playSound: (SoundType) -> Unit
 ) {
     val edgeLeaves = LeafPos.values().filterNot{ it == LeafPos.Center } //preallocate the values for performance
     var currRad by remember { mutableStateOf(0f) }
@@ -50,17 +48,8 @@ fun breatheCanvas(
     var minRadius by remember { mutableStateOf( minOf(changeRadius.height, changeRadius.width) / 100f) }
     var breatheState by remember { mutableStateOf(BreatheState.Empty) }
 
-    /*val animSpeed by remember { derivedStateOf {
-        when(currBreaths){
-            totalBreaths -> (animationSpeed * 1.1).toInt()
-            else -> animationSpeed
-        } }}*/
 
     var finalBreath by remember { mutableStateOf(false) }
-
-    //TODO: Try to sync each animation to breathRad instead of having
-    //to replicate each one manually!!
-
 
     fun recalcRadius() {
         val r = minOf(changeRadius.width, changeRadius.height)
@@ -74,7 +63,6 @@ fun breatheCanvas(
         recalcRadius()
         if(totalBreaths == currBreaths) finalBreath = true
         breatheState = BreatheState.Full
-        playSound(SoundType.BreatheIn)
     }
     LaunchedEffect(breathPaused){
         if(breathPaused){
@@ -158,7 +146,6 @@ fun breatheCanvas(
         finishedListener = {
             if(breatheState == BreatheState.Full) {
                 breatheState = BreatheState.Empty
-                playSound(SoundType.BreatheOut)
             }
             else if(breatheState == BreatheState.Paused)
                 breatheState = BreatheState.Paused
@@ -168,10 +155,17 @@ fun breatheCanvas(
         }
     )
 
+    var textMultiplier = currRad / radiusEnd
     val currRadUpdate by remember { derivedStateOf { breathRad } }
     LaunchedEffect(currRadUpdate){
         currRad = currRadUpdate
+        textMultiplier = currRad /radiusEnd
     }
+
+    val textMultiAnimated by animateFloatAsState(
+        targetValue = textMultiplier,
+        animationSpec = tween(30, easing = LinearOutSlowInEasing),
+    )
 
     val breathRadDelayed by animateFloatAsState(
         targetValue = when (breatheState) {
@@ -248,8 +242,12 @@ fun breatheCanvas(
         }
 
     }
-
-
+    fun breatheText() = when(breatheState){
+        BreatheState.Paused -> StrRes.paused
+        BreatheState.Empty -> if(finalBreath){ if(breathRad/radiusEnd < 0.999) StrRes.breatheout else StrRes.fullyin}
+        else currBreaths.toString()
+        else -> if(finalBreath) StrRes.fullyin else currBreaths.toString()
+    }
 
     Canvas(modifier = Modifier.offset(0.dp, 10.dp)) {
         val centerOffset = Offset(0f, 0f)
@@ -288,34 +286,37 @@ fun breatheCanvas(
             pos = LeafPos.Center,
             centerOffset = centerOffset
         )
+
+        val textMultiplier = (currRad/radiusEnd)
+        val textOffsetX =  if(currBreaths < 10) -12.5f else -25f
+        /*if (textMultiplier > 0.4 && breatheState == BreatheState.Empty || textMultiplier > 0.75 && breatheState == BreatheState.Full) {
+            drawText(
+                TextMeasurer(createFontFamilyResolver(), Density(4f, textMultiAnimated * 0.75f), LayoutDirection.Ltr).measure(AnnotatedString(breatheText())),
+                color = Color.White,
+                topLeft = Offset(textMultiAnimated * textOffsetX, textMultiAnimated * -(radiusEnd / 1.5f)),
+                alpha = textMultiAnimated * 1.0f,
+                shadow = Shadow(Color.DarkGray, Offset(textMultiAnimated * 4.0f, textMultiAnimated * 3.0f), 2.0f)
+            )
+        }*/
     }
 
-    fun breatheText() = when(breatheState){
-        BreatheState.Paused -> StrRes.paused
-        BreatheState.Empty -> if(finalBreath){ if(breathRad/radiusEnd < 0.999) StrRes.breatheout else StrRes.fullyin}
-        else currBreaths.toString()
-        else -> if(finalBreath) "Fully\n  In!" else currBreaths.toString()
-    }
     fun breatheTextColor() = when(breatheState){
         BreatheState.Paused -> Color.White
-        else -> if(breathRadDelayed/radiusEnd < 0.25) fontColor.copy(alpha=0f)
-        else fontColor.copy(alpha=breathRadDelayed/radiusEnd)
+        else -> if(breathRadDelayed/radiusEnd < 0.25) Color.White.copy(alpha=0f)
+        else Color.White.copy(alpha=breathRadDelayed/radiusEnd)
     }
 
     fun breatheTextSize(): TextUnit {
         return if(breathPaused) radiusEnd.sp
-        else if(finalBreath) (radiusEnd / 3.5).sp
-        else (radiusEnd  / 2.7).sp
+        else if(finalBreath) (radiusEnd / 3.2).sp
+        else (radiusEnd  / 2.0).sp
     }
-
-    //TODO: copy text style into shadow text style and enable the shadow
     Text(
         breatheText(),
         fontSize = breatheTextSize(),
         color = breatheTextColor(),
-        modifier = Modifier.offset(0.dp, (10f - (breathRad / 3)).dp),
-        fontWeight = FontWeight.Bold,
-        //style = TextStyle(shadow = Shadow(color = Color.Black, offset = Offset(4f,4f)))
+        modifier = Modifier.offset(-2.dp, (10f - (breathRad / 3)).dp),
+        fontWeight = FontWeight.W500,
+        style = TextStyle(shadow = Shadow(color = Color.DarkGray.copy(alpha=breathRadDelayed/radiusEnd), offset = Offset(4f,3f), blurRadius = 2f))
     )
-
 }

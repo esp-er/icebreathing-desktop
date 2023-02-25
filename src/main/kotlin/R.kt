@@ -1,5 +1,4 @@
-package patriker.breathing.iceman
-
+package io.github.esp_er.icebreathing
 const val lang = "en" //TODO: actually allow different languages
 object StrRes{
     //Start Screen
@@ -39,6 +38,12 @@ object StrRes{
 
     val heldbreath: String
 
+    val preselecttime: String
+    val doubletapfinish: String
+    val doubletapretention: String
+    val countup: String
+    val breathretention: String
+
     init{
         start = "Start!"
         exhale = "Exhale"
@@ -51,8 +56,14 @@ object StrRes{
         plus5 = "5+"
         minus5 = "5-"
 
+        preselecttime = "Pre-select Time"
+        doubletapfinish = "Double-Click to Finish Breath Retention"
+        doubletapretention= "Double-Click when Finished"
+        countup = "Count up Time"
+        breathretention = "Retention"
+
         holdbreath = "Hold"
-        heldbreath = "You breath held for"
+        heldbreath = "You held your breath for"
 
         getready = "Get Ready!"
 

@@ -32,12 +32,31 @@ tasks.withType<KotlinCompile>() {
 
 compose.desktop {
     application {
-        mainClass = "patriker.breathing.iceman.MainKt"
+        mainClass = "io.github.esp_er.icebreathing.MainKt"
+
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "patriker.breathing.iceman"
-            packageVersion = "1.0.0"
+            packageName = "Ice Breathing"
+            description = "An Iceman breathing meditation application"
+            copyright = "(c) Patrik Eriksson"
+            vendor = "esp-er.github.io"
+            packageVersion = "1.0.1"
+
+            macOS {
+                bundleID = "io.github.esp_er.icebreathing"
+                packageVersion = "1.0.1"
+                dmgPackageVersion = "1.0.0"
+                iconFile.set(project.file("icebreathing.icns"))
+            }
+            windows {
+                packageVersion = "1.0.1"
+                msiPackageVersion = "1.0.0"
+            }
+
+
         }
+
+        jvmArgs += "-Xmx120M"
     }
 }
 

@@ -1,5 +1,4 @@
-package patriker.breathing.iceman
-
+package io.github.esp_er.icebreathing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -27,10 +26,12 @@ import kotlin.concurrent.fixedRateTimer
 
 
 @Composable
-fun BreathHoldScreen(winsize: IntSize, timeLeft: Int, transitionScreen: (SessionState) -> Unit, playSound: (SoundType) -> Unit,
+fun BreathHoldScreen(winsize: IntSize, timeLeft: Int,
+                     onFinishHold: (Int) -> Unit,
                      clickedBack : () -> Unit){
     var time by remember { mutableStateOf(timeLeft) }
     var paused by rememberSaveable { mutableStateOf(false) }
+    var secondsHeld by remember { mutableStateOf(0) }
 
     val timeProgress by remember { derivedStateOf {  (timeLeft - time) / timeLeft.toFloat() } }
     val countdownProgress by animateFloatAsState(
@@ -39,9 +40,9 @@ fun BreathHoldScreen(winsize: IntSize, timeLeft: Int, transitionScreen: (Session
     )
 
     val progressDia = minOf(winsize.height, winsize.width)
-    val progSize = DpSize(progressDia.dp * 0.8f, progressDia.dp * 0.8f)
+    val progSize = DpSize(progressDia.dp * 0.83f, progressDia.dp * 0.83f)
 
-    val lineDiam = DpSize(progressDia.dp * 0.73f, progressDia.dp * 0.73f)
+    val lineDiam = DpSize(progressDia.dp * 0.76f, progressDia.dp * 0.76f)
 
     fun togglePause(){
         paused = !paused
@@ -50,7 +51,7 @@ fun BreathHoldScreen(winsize: IntSize, timeLeft: Int, transitionScreen: (Session
 
     fun finishClicked(){
         time = 0
-        transitionScreen(SessionState.BreatheHold)
+        onFinishHold(secondsHeld)
     }
 
 
@@ -62,7 +63,8 @@ fun BreathHoldScreen(winsize: IntSize, timeLeft: Int, transitionScreen: (Session
         }
     }
     LaunchedEffect(time){
-        if (time <= 0) transitionScreen(SessionState.BreatheHold)
+        if (time <= 0) onFinishHold(secondsHeld)
+        secondsHeld = timeLeft - time
     }
 
     Canvas(modifier = Modifier.offset(0.dp, 0.dp)) {

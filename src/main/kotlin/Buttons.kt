@@ -1,4 +1,4 @@
-package patriker.breathing.iceman
+package io.github.esp_er.icebreathing
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Spacer

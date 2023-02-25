@@ -1,5 +1,4 @@
-package patriker.breathing.iceman
-
+package io.github.esp_er.icebreathing
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
@@ -27,13 +26,11 @@ enum class HoldState{
 
 @Composable
 fun BreathInScreen(winsize: IntSize,
-                   timeLeft: Int = 17, finishedHold: (SessionState) -> Unit,
-                   playSound: (SoundType) -> Unit,
-                   stopSound: () -> Unit,
+                   timeLeft: Int = 17,
                    transitionScreen: (SessionState) -> Unit,
                    clickedBack: () -> Unit){
     val holdTime = 16.0f //TODO: remove these magic values
-    val progressDia = winsize.height / 1.5f
+    val progressDia = minOf(winsize.height, winsize.width)
     var holdState by remember { mutableStateOf(HoldState.Stop) }
     val transition = updateTransition(targetState = holdState)
     var time by remember { mutableStateOf(timeLeft) }
@@ -52,7 +49,6 @@ fun BreathInScreen(winsize: IntSize,
     }
 
     LaunchedEffect(true) {
-        playSound(SoundType.BreatheIn)
         holdState = HoldState.Inhale
         fixedRateTimer("timer", false, 2000, 1000) {
             if(time <= 2){
@@ -61,15 +57,10 @@ fun BreathInScreen(winsize: IntSize,
             if(time > 0 && !paused) time--
         }
     }
-    LaunchedEffect(holdState) {
-        if(holdState == HoldState.Exhale)
-            playSound(SoundType.BreatheOut)
-    }
     LaunchedEffect(time) {
         if (time <= 0) {
-            stopSound()
             delay(1000)
-            finishedHold(SessionState.BreatheInHold)
+            transitionScreen(SessionState.BreatheInHold)
         }
     }
 
@@ -90,11 +81,11 @@ fun BreathInScreen(winsize: IntSize,
     }
 
 
-    val progSize = DpSize(transitionMultiplier * progressDia.dp * 0.8f,
-        transitionMultiplier * progressDia.dp * 0.8f)
+    val progSize = DpSize(transitionMultiplier * progressDia.dp * 0.83f,
+        transitionMultiplier * progressDia.dp * 0.83f)
 
-    val lineDiam = DpSize(transitionMultiplier * progressDia.dp * 0.73f,
-        transitionMultiplier * progressDia.dp * 0.73f)
+    val lineDiam = DpSize(transitionMultiplier * progressDia.dp * 0.76f,
+        transitionMultiplier * progressDia.dp * 0.76f)
 
     Canvas(modifier = Modifier.offset(0.dp, 0.dp)) {
         drawCircle(
@@ -121,7 +112,7 @@ fun BreathInScreen(winsize: IntSize,
                 Text(
                     StrRes.inhale,
                     style = TextStyle(
-                        fontSize = (transitionMultiplier * 34).sp,
+                        fontSize = (transitionMultiplier * 36).sp,
                         color = Color.White
                     )
                 )
@@ -132,14 +123,14 @@ fun BreathInScreen(winsize: IntSize,
                             Text(
                                 StrRes.holdbreath,
                                 style = TextStyle(
-                                    fontSize = 28.sp,
+                                    fontSize = 36.sp,
                                     color = Color.White.copy(alpha = transitionMultiplier)
                                 )
                             )
                             Text(
                                 (time - 1).secondsAsStr(),
                                 style = TextStyle(
-                                    fontSize = 32.sp,
+                                    fontSize = 40.sp,
                                     color = Color.White.copy(alpha = transitionMultiplier)
                                 )
                             )

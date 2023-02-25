@@ -1,4 +1,4 @@
-package patriker.breathing.iceman
+package io.github.esp_er.icebreathing
 
 enum class BreathRate{
     X0_75, X0_9, X1, X1_1, X1_25;

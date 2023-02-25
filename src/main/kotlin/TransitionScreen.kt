@@ -1,4 +1,4 @@
-package patriker.breathing.iceman
+package io.github.esp_er.icebreathing
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
@@ -51,12 +51,10 @@ fun TransitionScreen(winsize: IntSize, roundNum: Int, breathGoal: Int, finishedP
     }
 }
 
-/*
 @Preview
 @Composable
 fun PreviewTransition(){ //Previewing animated content seems problematic
-    TransitionScreen(IntSize(400, 400), 1, 40) { s: SessionState -> println(s) }
+    TransitionScreen(IntSize(400, 400), 1, 40) { }
 }
- */
 
 

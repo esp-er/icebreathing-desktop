@@ -1,5 +1,6 @@
-package patriker.breathing.iceman
-
+package io.github.esp_er.icebreathing
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -9,11 +10,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlin.math.round
 
 
 const val ANIM_MS = 1540
@@ -23,12 +26,15 @@ enum class SessionState{
     Prepare, Breathe, BreatheHold, BreatheInHold, Done;
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, clickedBack: () -> Unit, audio: AudioPlay, setTransparent: (Boolean) -> Unit){
-    var winsize by remember{ mutableStateOf(IntSize(400,400))}
+fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, clickedBack: () -> Unit){
+    var winsize by remember{ mutableStateOf(IntSize(450,580))}
     var roundNum by remember{ mutableStateOf(1)}
     val roundGoal by remember{ mutableStateOf(thisSession.numRounds)}
     val breathGoal by remember{ mutableStateOf(thisSession.numBreaths)}
+    var secondsHeld by rememberSaveable{ mutableStateOf(thisSession.breathHoldTime.toMutableMap()) }
+    var breathsFinished by rememberSaveable{ mutableStateOf(0) }
     var breathPaused by remember{ mutableStateOf(false)}
     var numBreaths by remember{ mutableStateOf(1)}
     var sessState by remember{ mutableStateOf(SessionState.Prepare)}
@@ -36,127 +42,120 @@ fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, clickedBack:
     val animationSpeed by derivedStateOf{  breathRate.toMs(ANIM_MS)  }
     val speedText by derivedStateOf { "Speed: ${breathRate.str()}" }
     var finishClicked by remember{ mutableStateOf(false)}
+    fun finishBreathing() {
+        finishClicked = true
+        //numBreaths = 1
+        //transitionBreathing(SessionState.Breathe)
+    }
+
+    fun pauseClicked() { breathPaused = true }
+    fun continueClicked() { breathPaused = false }
+    fun increaseSpeed() { breathRate = breathRate.Increase() }
+    fun decreaseSpeed() { breathRate = breathRate.Decrease() }
+
+    fun transitionBreathing(s: SessionState) {
+        sessState = if (roundNum > roundGoal) {
+            secondsHeld = secondsHeld.filter{it.key < roundNum}.toMutableMap()
+            SessionState.Done
+        }
+        else
+            when (s) {
+                SessionState.Prepare -> SessionState.Breathe
+                SessionState.Breathe -> SessionState.BreatheHold
+                SessionState.BreatheHold -> SessionState.BreatheInHold
+                SessionState.BreatheInHold -> SessionState.Prepare
+                else -> SessionState.Done
+            }
+    }
+    //Called before transitionBreathing when coming from retention
+    fun transitionFromHold(secsHeld: Int){
+        secondsHeld[roundNum] = secsHeld
+        transitionBreathing(SessionState.BreatheHold)
+    }
+
+
+    fun goToStart() {
+        transitionBreathing(SessionState.Done)
+        clickedBack()
+    }
+
+
+    fun incrementBreath() {
+        if (numBreaths < breathGoal && !finishClicked) {
+            numBreaths += 1
+            breathsFinished += 1
+        } else {
+            breathsFinished += 1
+            numBreaths = 1
+            finishClicked = false
+            transitionBreathing(SessionState.Breathe)
+        }
+    }
+    fun incrementRound(s: SessionState) {
+        if(roundNum <= roundGoal) roundNum += 1
+        transitionBreathing(s)
+    }
 
 
     Box(contentAlignment = Alignment.Center,
-        modifier = Modifier.onGloballyPositioned { coords ->
-            winsize = coords.size }
+        modifier = Modifier.background(color = Color.Black) //Background rendering issue when using graalvm? this fixes it for some reason
+            .offset(y=0.5.dp)
+
     ) {
-
-        fun transitionBreathing(s: SessionState){
-            sessState = if(roundNum > roundGoal)
-                SessionState.Done
-            else
-                when(s){
-                    SessionState.Prepare -> SessionState.Breathe
-                    SessionState.Breathe -> SessionState.BreatheHold
-                    SessionState.BreatheHold -> SessionState.BreatheInHold
-                    SessionState.BreatheInHold -> SessionState.Prepare
-                    else -> SessionState.Done
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize().background(MaterialTheme.colors.background)
+            .onGloballyPositioned { winsize = it.size }
+        ) {
+            if(sessState != SessionState.Done)
+                RoundText(roundNum, mod = Modifier.align(Alignment.TopStart).padding(horizontal = 8.dp, vertical = 4.dp))
+            if (sessState == SessionState.Prepare) {
+                TransitionScreen(winsize, roundNum, breathGoal, ::transitionBreathing)
+            } else if (sessState == SessionState.BreatheHold) {
+                if(thisSession.retentionStyle == RetentionType.Preselect) {
+                    BreathHoldScreen(
+                        winsize,
+                        thisSession.breathHoldTime.getOrElse(roundNum, { 1 }),
+                        ::transitionFromHold,
+                        ::goToStart
+                )
                 }
-        }
-
-        fun goToStart(){
-            transitionBreathing(SessionState.Done)
-            clickedBack()
-        }
-        fun finishBreathing() {
-            finishClicked = true
-            //numBreaths = 1
-            //transitionBreathing(SessionState.Breathe)
-        }
-
-
-        fun incrementBreath() {
-            if(numBreaths < breathGoal && !finishClicked){
-                numBreaths += 1
-            }
-            else{
-                numBreaths = 1
-                finishClicked = false
-                transitionBreathing(SessionState.Breathe)
-            }
-        }
-
-        fun incrementRound(s: SessionState) {
-            if(roundNum <= roundGoal) roundNum += 1
-            transitionBreathing(s)
-        }
-
-        fun pauseClicked()   { breathPaused = true }
-        fun continueClicked(){ breathPaused = false }
-        fun increaseSpeed() { breathRate = breathRate.Increase()}
-        fun decreaseSpeed() { breathRate = breathRate.Decrease()}
-
-        fun playSound(x: SoundType) {
-            if(sessState == SessionState.Breathe && x == SoundType.BreatheOut && numBreaths == breathGoal) {
-                GlobalScope.launch {
-                    audio.play(x, BREATH_DELAY)
+                else {
+                    BreathRetention(
+                        changeRadius = winsize,
+                        onFinishRetention = { secs -> transitionFromHold(secs) },
+                        finishClicked = false,
+                        clickedBack = ::goToStart,
+                        animSpeed = animationSpeed
+                    )
                 }
-            }
-            /*else if(x == SoundType.Triangle){
-                audio.stopSounds()
-                GlobalScope.launch {
-                    audio.play(x)
-                    when (roundNum) { //TODO: fix stopping at new round
-                        1 -> audio.playMusic(1000L, "ambient")
-                        2 -> audio.playMusic(1000L, "fluid")
-                        3 -> audio.playMusic(1000L, "ambient")
-                        else -> audio.playMusic(1000L, "fluid")
-                        //4 -> audio.playMusic(500L, "namaste") //TODO:namaste file seems broken
-                    }
-                }
-            }*/
-            else { // Play when breathing
-                GlobalScope.launch {
-                    audio.play(x)
-                }
-            }
-        }
-        fun stopSound() {
-            audio.stopSounds()
-        }
 
-        if(sessState == SessionState.Prepare){
-            setTransparent(false)
-            TransitionScreen(winsize, roundNum, breathGoal, ::transitionBreathing)
-        }
-        else if(sessState == SessionState.BreatheHold) {
-            setTransparent(true)
-            BreathHoldScreen(winsize, thisSession.breathHoldTime.getOrElse(roundNum, { 1 }),
-                ::transitionBreathing, ::playSound, ::goToStart)
-        }
-        else if(sessState == SessionState.BreatheInHold)
-            BreathInScreen(winsize, finishedHold = ::incrementRound,
-                           playSound = ::playSound,
-                           stopSound = ::stopSound,
-                           transitionScreen = ::transitionBreathing,
-                            clickedBack = clickedBack)
-        else if(sessState == SessionState.Done) {
-            setTransparent(false)
-            FinishScreen(thisSession, clickedBack)
-        }
-        else{
+            } else if (sessState == SessionState.BreatheInHold)
+                BreathInScreen(
+                    winsize,
+                    transitionScreen = ::incrementRound,
+                    clickedBack = clickedBack
+                )
+            else if (sessState == SessionState.Done) {
+                FinishScreen(thisSession.copy(breathHoldTime = secondsHeld), clickedBack, breathsFinished = breathsFinished)
+            } else {
+                breatheCanvas(
+                    winsize, currBreaths = numBreaths, totalBreaths = breathGoal,
+                    onFinishBreath = ::incrementBreath,
+                    breathPaused = breathPaused,
+                    finishClicked = finishClicked,
+                    animSpeed = animationSpeed
+                )
 
-            breatheCanvas(winsize, currBreaths = numBreaths, totalBreaths = breathGoal,
-                onFinishBreath = ::incrementBreath,
-                breathPaused = breathPaused,
-                finishClicked = finishClicked,
-                animSpeed = animationSpeed,
-                playSound = ::playSound)
+                //Overlay button alignments
+                val pauseAlign = Modifier.align(Alignment.BottomCenter).padding(8.dp)
+                val speedTextAlign = Modifier.align(Alignment.TopCenter)
+                val leftMod = Modifier.align(Alignment.CenterStart)
+                    .padding(4.dp)
+                val rightMod = Modifier.align(Alignment.CenterEnd)
+                    .padding(4.dp)
+                val backModifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(8.dp)
 
-            //Overlay button alignments
-            val pauseAlign = Modifier.align(Alignment.BottomCenter).padding(8.dp)
-            val speedTextAlign = Modifier.align(Alignment.TopCenter)
-            val leftMod = Modifier.align(Alignment.CenterStart)
-                .padding(4.dp)
-            val rightMod = Modifier.align(Alignment.CenterEnd)
-                .padding(4.dp)
-            val backModifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(8.dp)
-
-            if(buttonVisible) {
                 RateButton(clickCallback = ::decreaseSpeed, mod = leftMod, size = 18.dp)
                 if (breathRate != BreathRate.X1)
                     Text(
@@ -173,12 +172,14 @@ fun BreatheScreen(buttonVisible: Boolean, thisSession: SessionData, clickedBack:
                     }
 
                 }
-            }
-            BackButton(backClicked = ::goToStart,
-                mod = backModifier,
-                size = 24.dp )
+                BackButton(
+                    backClicked = ::goToStart,
+                    mod = backModifier,
+                    size = 24.dp
+                )
 
-            FinishBreatheButton(::finishBreathing, Modifier.align(Alignment.BottomEnd).padding(8.dp), 24.dp)
+                FinishBreatheButton(::finishBreathing, Modifier.align(Alignment.BottomEnd).padding(8.dp), 24.dp)
+            }
         }
     }
 }

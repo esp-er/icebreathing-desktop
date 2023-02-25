@@ -1,4 +1,4 @@
-package patriker.breathing.iceman.ui
+package io.github.esp_er.icebreathing.ui
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme

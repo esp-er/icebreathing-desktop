@@ -1,13 +1,10 @@
-package patriker.breathing.iceman
-
+package io.github.esp_er.icebreathing
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -29,7 +26,38 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 const val DEFAULT_ROUNDS = 2
-val DEF_HOLDMAP = mapOf(1 to 120, 2 to 150, 3 to 165, 4 to 185, 5 to 210, 6 to 230)
+val DEF_HOLDMAP = mapOf(1 to 90, 2 to 120, 3 to 150, 4 to 180, 5 to 180, 6 to 180, 7 to 180, 8 to 180)
+
+
+
+enum class BreathSound{
+    None, Breathing, SingingBowl;
+}
+
+
+enum class RetentionMusic{
+    None, SingingBowlsAssorted, SingingBowlsLow;
+}
+
+enum class BreathingStyle{
+    Standard, SlowInhale;
+}
+
+fun BreathingStyle.label(): String{
+    return when(this) {
+        BreathingStyle.SlowInhale -> "Slow In Fast Out"
+        BreathingStyle.Standard -> "Default"
+    }
+}
+
+fun RetentionMusic.label(): String{
+    return when(this) {
+        RetentionMusic.SingingBowlsAssorted -> "Assorted Singing Bowls"
+        RetentionMusic.SingingBowlsLow -> "Singing Bowl Low Tones"
+        RetentionMusic.None -> "None"
+    }
+}
+
 
 
 fun Int.secondsAsStr(): String {
@@ -38,13 +66,24 @@ fun Int.secondsAsStr(): String {
     return String.format("%02d:%02d", minutes, secs)
 }
 
+enum class RetentionType{
+    Preselect, CountUp;
+
+    companion object {
+        fun byValue(value: Int) = if (value == 0 ) Preselect else CountUp
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun StartScreen(finishedSelection: (SessionData) -> Unit){
     var numRoundsSelected by remember { mutableStateOf(DEFAULT_ROUNDS + 1) }
     var numBreaths by remember { mutableStateOf(30)}
     var holdTimes by remember { mutableStateOf(DEF_HOLDMAP)}
-    val breathingSession by remember { derivedStateOf { SessionData(numBreaths, numRoundsSelected, holdTimes)  } }
+    val breathingSession by remember { derivedStateOf { SessionData(numBreaths, numRoundsSelected,  holdTimes, RetentionType.CountUp, BreathRate.X1)  } }
+
+
+    var retentionStyle by remember { mutableStateOf(RetentionType.CountUp) }
 
     fun roundsSelected(rounds: Int){ numRoundsSelected = rounds + 1}
     fun numBreathsSelected(n: Int){ numBreaths = n}
@@ -53,42 +92,84 @@ fun StartScreen(finishedSelection: (SessionData) -> Unit){
     }
     //var winsize by remember { mutableStateOf(IntSize(400,400))}
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.offset(y = 10.dp).onGloballyPositioned { coords ->
-            //var winsize = coords.size
-        }){
 
-        Box(modifier = Modifier.size(400.dp, 80.dp), contentAlignment = Alignment.TopCenter) {
-            Column(modifier = Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally)  {
-                Text(StrRes.breaths, textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                    fontWeight = FontWeight.Medium,
-                    style = TextStyle(fontSize = 16.sp, color = Color.LightGray))
-                //Spacer(modifier = Modifier.padding(5.dp))
-                numBreathsSelector(numBreaths, ::numBreathsSelected)
+
+    Box(contentAlignment = Alignment.Center,
+        modifier = Modifier.background(color = Color.Black) //Background rendering issue when using graalvm/jwm? this fixes it for some reason
+            .offset(y=0.5.dp)
+
+    ){
+        Column(horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.onGloballyPositioned { coords ->
+                //var winsize = coords.size
+            }.background(MaterialTheme.colors.background).fillMaxSize()
+            ){
+
+            Box(modifier = Modifier.height(98.dp).fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+                Column(modifier = Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally)  {
+                    Text(StrRes.breaths, textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 12.dp),
+                        fontWeight = FontWeight.Medium,
+                        style = TextStyle(fontSize = 16.sp, color = Color.LightGray))
+                    //Spacer(modifier = Modifier.padding(5.dp))
+                    numBreathsSelector(numBreaths, ::numBreathsSelected)
+                }
             }
-        }
-
-        Box(modifier = Modifier.size(400.dp, 95.dp).offset(y = 5.dp)) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally){
-                Text(StrRes.rounds, textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 10.dp),
-                fontWeight = FontWeight.Medium,
-                color = Color.LightGray
-                )
-                //Spacer(modifier = Modifier.padding(5.dp))
-                roundSelector(::roundsSelected)
+            Box(modifier = Modifier.height(95.dp).offset(y = 8.dp).fillMaxWidth()) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        StrRes.rounds, textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 10.dp),
+                        fontWeight = FontWeight.Medium,
+                        color = Color.LightGray
+                    )
+                    //Spacer(modifier = Modifier.padding(5.dp))
+                    roundSelector(::roundsSelected)
+                }
             }
-        }
-
-
-        Box(modifier = Modifier.offset(y = 0.dp)
-            .size(400.dp, 260.dp)) {
-            Column {
-                holdTimesSelectGrid(numRoundsSelected, ::holdTimesChanged)
-                //timeSliderCard()
+            Box(modifier = Modifier.height(95.dp).fillMaxWidth().offset(y = 2.dp)) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        StrRes.breathretention, textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 10.dp),
+                        fontWeight = FontWeight.Medium,
+                        color = Color.LightGray
+                    )
+                    //Spacer(modifier = Modifier.padding(5.dp))
+                    RetentionSelector(onSelected = { retentionStyle = it },
+                        selectorLabels = StrRes.preselecttime to StrRes.countup
+                    )
+                }
             }
-        }
+
+            if(retentionStyle == RetentionType.Preselect) {
+                Box(
+                    modifier = Modifier.offset(y = 0.dp)
+                        .height(180.dp).fillMaxWidth()
+                ) {
+                    Column {
+                        //holdTimesSelectGrid(numRoundsSelected, ::holdTimesChanged)
+                        HoldTimeSelector(
+                            onSelected = {},
+                            holdTimes.values.toTypedArray(),
+                            numRoundsSelected = numRoundsSelected,
+                            ::holdTimesChanged
+                        )
+                        //timeSliderCard()
+                    }
+                }
+            }else {
+                Box(
+                    modifier = Modifier.height(90.dp).fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column {
+                        //holdTimesSelectGrid(numRoundsSelected, ::holdTimesChanged)
+                        Text(StrRes.doubletapfinish, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.W400)
+                        //timeSliderCard()
+                    }
+                }
+            }
 
             /*
         Box(modifier = Modifier.offset(y = 10.dp)
@@ -109,15 +190,16 @@ fun StartScreen(finishedSelection: (SessionData) -> Unit){
             }
         }*/
 
-        Spacer(modifier = Modifier.padding(2.dp))
-        Button(onClick = { finishedSelection(breathingSession) },
-            shape = CircleShape,
-            modifier = Modifier.size(100.dp)){
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Filled.Spa, "Start Breathing",
-                modifier = Modifier.size(32.dp))
-                Spacer(modifier = Modifier.padding(vertical = 2.dp))
-                Text(StrRes.start)
+            Spacer(modifier = Modifier.padding(2.dp))
+            Button(onClick = { finishedSelection(breathingSession.copy(retentionStyle = retentionStyle)) },
+                shape = CircleShape,
+                modifier = Modifier.size(100.dp)){
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Filled.Spa, "Start Breathing",
+                        modifier = Modifier.size(32.dp))
+                    Spacer(modifier = Modifier.padding(vertical = 2.dp))
+                    Text(StrRes.start)
+                }
             }
         }
     }
@@ -128,7 +210,7 @@ fun StartScreen(finishedSelection: (SessionData) -> Unit){
 @Composable
 fun PreviewBreathsSelect(){
     Surface(modifier = Modifier.fillMaxSize(1f), color = backColor) {
-        numBreathsSelector(30, { x -> println(x) })
+        numBreathsSelector(30, { })
     }
 }
 @Composable
@@ -204,133 +286,6 @@ fun numBreathsSelector(initialNumBreaths: Int, onBreathsChanged: (Int) -> Unit){
     }
 }
 
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun holdTimesSelectGrid(numRoundsSelected: Int, onTimeChanged: (Map<Int,Int>) -> Unit){
-
-    data class ButtonClicked(val clicked: Boolean = false, val i: Int = -1){
-        val backingField: ButtonClicked
-            get() { return if(this.clicked && this.i != -1) this else ButtonClicked() }
-    }
-    var buttonLabels = arrayOf(120,150,165,180,300,360)
-    var cardHeight = 64.dp
-    var timeButtonHeight = 32.dp
-    var showTimerPicker by remember { mutableStateOf(false)}
-    var buttonSecs = remember { mutableStateListOf(*buttonLabels) }
-    var lastClickedIndex by remember { mutableStateOf(ButtonClicked()) }
-    var lastClickedTime by remember { mutableStateOf(0)}
-    LaunchedEffect(lastClickedIndex){
-        if(lastClickedIndex.clicked)
-            lastClickedTime = buttonSecs[lastClickedIndex.i]
-    }
-    LaunchedEffect(numRoundsSelected){
-        if((numRoundsSelected -1 ) < lastClickedIndex.i)
-            lastClickedIndex = ButtonClicked()
-    }
-    //TODO fix this placeholder hoisted state func
-    fun timeChanged(newTime: Int) {
-        if(lastClickedIndex.clicked)
-            buttonSecs[lastClickedIndex.i] = newTime
-
-        val timesMap = buttonSecs.mapIndexed{index, secs -> index + 1 to secs}.toMap()
-        onTimeChanged(timesMap)
-    }
-
-    fun cellsPerRow(n: Int): Int {
-        return when{
-            n > 4       -> 3
-            n % 2 == 0  -> 2
-            else        -> n
-        }
-    }
-
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            StrRes.holdtimes,
-            color = Color.LightGray,
-            textAlign = TextAlign.Start,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(horizontal = 10.dp)
-        )
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(cellsPerRow(numRoundsSelected)),
-            contentPadding = PaddingValues(10.dp),
-            modifier = Modifier.align(Alignment.CenterHorizontally).onGloballyPositioned { coords -> coords.size}
-        ) {
-            items(numRoundsSelected) { item ->
-                Card(
-                    modifier = Modifier.padding(vertical = 4.dp, horizontal = 4.dp)
-                        .align(Alignment.CenterHorizontally)
-                        .onGloballyPositioned { coords -> coords.size },
-                    elevation = if(lastClickedIndex.i == item) 10.dp else 0.dp ,
-                    backgroundColor = if(lastClickedIndex.i == item) MaterialTheme.colors.secondary
-                                      else MaterialTheme.colors.secondaryVariant
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
-                        Text("Round ${item + 1}", fontWeight = FontWeight.Medium, color = Color.White)
-
-                        Button(
-                            onClick = { showTimerPicker = true; lastClickedIndex = ButtonClicked(true, item)},
-                            modifier = Modifier.fillMaxWidth(0.95f)
-                            //backgroundColor = MaterialTheme.colors.primaryVariant
-                        ) {
-                            Icon(Icons.Outlined.Timer, "Choose Time",
-                            modifier = Modifier.size(16.dp,16.dp))
-                            Spacer(modifier = Modifier.padding(horizontal = 2.dp))
-                            Text(
-                                text = buttonSecs[item].secondsAsStr(),
-                                fontSize = 14.sp,
-                                textAlign = TextAlign.Center,
-                            )
-                        }
-                    }
-                }
-            }
-        }
-        //TODO: expand on this and create proper toggle buttons
-        if(lastClickedIndex.clicked) timeSliderCard(lastClickedTime, ::timeChanged)
-    }
-
-}
-
-@Composable
-fun timeSliderCard(initialTime: Int, onTimeChanged: (Int) -> Unit){
-    val minValue = 10f
-    val maxValue = 600f
-    var sliderValue by remember {   if(initialTime <= 30) mutableStateOf(0f)
-                                    else mutableStateOf(initialTime.toFloat()) }
-    LaunchedEffect(initialTime){
-        sliderValue = initialTime.toFloat()
-    }
-    val sliderSeconds by remember { derivedStateOf { sliderValue.toInt() }}
-    val timeText by remember { derivedStateOf { sliderSeconds.secondsAsStr() }}
-
-    val selectorColors = SliderDefaults.colors(thumbColor = MaterialTheme.colors.onSurface, activeTrackColor = MaterialTheme.colors.onSurface)
-
-    Card(modifier = Modifier.width(400.dp).height(64.dp).padding(horizontal = 16.dp),
-    backgroundColor = MaterialTheme.colors.secondaryVariant) {
-        Box(modifier = Modifier.padding(10.dp)) {
-            Text(text = timeText,
-                fontWeight = FontWeight.Medium,
-                color = Color.White
-            )
-
-            Slider(
-                modifier = Modifier.offset(y = 10.dp).align(Alignment.Center),
-                value = sliderValue,
-                valueRange = minValue..maxValue,
-                steps = 0,
-                onValueChange = { sliderValue = it; onTimeChanged(sliderSeconds)
-                    //colors = SliderDefaults.colors()
-                },
-                colors = selectorColors
-            )
-        }
-    }
-}
-
 @Composable
 fun roundSelector(onSelected: (Int) -> Unit){
     val cornerRadius = 4.dp
@@ -347,9 +302,10 @@ fun roundSelector(onSelected: (Int) -> Unit){
             onSelected(selectedIndex)
         }
 
-        val items = (1..6).toList()
+        val items = (1..8).toList()
         items.forEachIndexed { index, item ->
             OutlinedButton(
+                modifier = Modifier.width(52.dp),
                 onClick = { indexChanged(index) },
                 shape = when (index) {
                     // left outer button
@@ -372,7 +328,6 @@ fun roundSelector(onSelected: (Int) -> Unit){
                 Text(
                     text = item.toString(),
                     color = if(selectedIndex == index) { MaterialTheme.colors.secondary } else { Color.LightGray },
-                    modifier = Modifier.padding(horizontal = 8.dp)
                 )
             }
         }
@@ -380,3 +335,254 @@ fun roundSelector(onSelected: (Int) -> Unit){
         Spacer(modifier = Modifier.weight(1f))
     }
 }
+
+
+@ExperimentalFoundationApi
+@Composable
+fun RetentionSelector(onSelected: (RetentionType) -> Unit,
+                      selectorLabels: Pair<String, String>,
+                      defaultSelected: RetentionType = RetentionType.CountUp){
+    var selectedIndex by remember{ mutableStateOf(defaultSelected.ordinal)}
+
+    fun buttonSelected(index: Int){
+        selectedIndex = index
+
+        val retentionSelected =
+            if(selectedIndex == 0) RetentionType.Preselect else RetentionType.CountUp
+
+        onSelected(retentionSelected)
+    }
+
+    Column(modifier = Modifier.fillMaxWidth(1f),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(8.dp)
+                .align(Alignment.CenterHorizontally)
+                .fillMaxWidth(0.9f)
+        ) {
+
+            Spacer(modifier = Modifier.weight(1f))
+            listOf(selectorLabels.first, selectorLabels.second).forEachIndexed { index, it ->
+                OutlinedButton(
+                    modifier = Modifier.padding(horizontal = 1.dp, vertical = 1.dp),
+                    onClick = { buttonSelected(index) }, //TODO set index inside onClick
+                    shape = RoundedCornerShape(4.dp),
+                    border = BorderStroke(
+                        1.dp,
+                        color = if (selectedIndex == index)
+                            MaterialTheme.colors.secondary
+                        else
+                            MaterialTheme.colors.primary
+                    ),
+                    colors = if (selectedIndex == index) {
+                        // selected colors
+                        ButtonDefaults.outlinedButtonColors(
+                            backgroundColor = MaterialTheme.colors.primary,
+                            contentColor = Color.LightGray
+                        )
+                    } else {
+                        // default colors
+                        ButtonDefaults.outlinedButtonColors(
+                            backgroundColor = MaterialTheme.colors.background,
+                            contentColor = MaterialTheme.colors.secondary
+                        )
+                    },
+                ) {
+                    Text(
+                        text = it,
+                        color = if (selectedIndex == index) {
+                            Color.LightGray
+                        } else {
+                            MaterialTheme.colors.secondary
+                        },
+                        modifier = Modifier
+                            .padding(horizontal = 2.dp)
+                        //.align(Alignment.CenterHorizontally)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+fun TimeSliderCard(initialTime: Int, onTimeChanged: (Int) -> Unit, round: Int){
+    val minValue = 30f
+    val maxValue = 600f
+    var sliderValue by remember {   if(initialTime <= 30) mutableStateOf(0f)
+    else mutableStateOf(initialTime.toFloat()) }
+    LaunchedEffect(initialTime){
+        sliderValue = initialTime.toFloat()
+    }
+    val sliderSeconds by remember { derivedStateOf { sliderValue.toInt() }}
+    val timeText by remember { derivedStateOf { sliderSeconds.secondsAsStr() }}
+
+    Card(modifier = Modifier
+        .fillMaxWidth(0.98f)
+        .height(72.dp)
+        .padding(horizontal = 16.dp),
+        backgroundColor = MaterialTheme.colors.secondaryVariant) {
+        Box(modifier = Modifier.padding(10.dp)) {
+            Row {
+                Text(
+                    modifier = Modifier.weight(2f),
+                    text = timeText,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.White
+                )
+                Spacer(modifier = Modifier.weight(6f))
+                Text(
+                    modifier = Modifier.weight(2.5f),
+                    text = "Round $round",
+                    color = Color.White
+                )
+
+            }
+            Slider(
+                modifier = Modifier
+                    .offset(y = 16.dp)
+                    .align(Alignment.Center),
+                value = sliderValue,
+                valueRange = minValue..maxValue,
+                steps = 0,
+                onValueChange = { sliderValue = it; onTimeChanged(sliderSeconds)}
+            )
+        }
+    }
+}
+
+@ExperimentalFoundationApi
+@Composable
+fun HoldTimeSelector(onSelected: (Int) -> Unit,
+                     buttonLabels: Array<Int>,
+                     numRoundsSelected: Int,
+                     onTimeChanged: (Map<Int,Int>) -> Unit){
+    var selectedIndex by remember{ mutableStateOf(-1)}
+
+    data class ButtonClicked(val clicked: Boolean = false, val i: Int = -1){
+        val backingField: ButtonClicked
+            get() { return if(this.clicked && this.i != -1) this else ButtonClicked() }
+    }
+    val buttonSecs = remember { mutableStateListOf(*buttonLabels) }
+    var lastClickedIndex by remember { mutableStateOf(ButtonClicked()) }
+    var lastClickedTime by remember { mutableStateOf(0)}
+    var lastClickedRound by remember { mutableStateOf(1)}
+    LaunchedEffect(lastClickedIndex){
+        if(lastClickedIndex.clicked) {
+            lastClickedTime = buttonSecs[lastClickedIndex.i]
+            lastClickedRound = lastClickedIndex.i + 1
+        }
+    }
+    LaunchedEffect(numRoundsSelected){
+        if((numRoundsSelected -1 ) < lastClickedIndex.i)
+            lastClickedIndex = ButtonClicked()
+    }
+    //TODO fix this placeholder hoisted state func
+    fun timeChanged(newTime: Int) {
+        if(lastClickedIndex.clicked) {
+            buttonSecs[lastClickedIndex.i] = newTime
+        }
+
+        val timesMap = buttonSecs.mapIndexed{index, secs -> index + 1 to secs}.toMap()
+        onTimeChanged(timesMap)
+    }
+
+    fun buttonSelected(index: Int){
+        lastClickedIndex = ButtonClicked(true, index)
+        onSelected(index)
+    }
+
+    Column(modifier = Modifier.fillMaxWidth(1f),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(8.dp)
+                .align(Alignment.CenterHorizontally)
+                .fillMaxWidth(0.9f)
+        ) {
+            Spacer(modifier = Modifier.weight(1f))
+            fun indexChanged(i: Int) {
+                selectedIndex = i
+                buttonSelected(selectedIndex)
+            }
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(minOf(numRoundsSelected, 5)),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                itemsIndexed(Array(numRoundsSelected, { i -> i + 1 })) { index, it ->
+                    OutlinedButton(
+                        modifier = Modifier.padding(horizontal = 2.dp, vertical = 1.dp),
+                        onClick = { indexChanged(index) }, //TODO set index inside onClick
+                        shape = RoundedCornerShape(4.dp),
+                        border = BorderStroke(
+                            1.dp,
+                            color = if (selectedIndex == index)
+                                MaterialTheme.colors.secondary
+                            else
+                                MaterialTheme.colors.primary
+                        ),
+                        colors = if (selectedIndex == index) {
+                            // selected colors
+                            ButtonDefaults.outlinedButtonColors(
+                                backgroundColor = MaterialTheme.colors.primary,
+                                contentColor = Color.LightGray
+                            )
+                        } else {
+                            // default colors
+                            ButtonDefaults.outlinedButtonColors(
+                                backgroundColor = MaterialTheme.colors.background,
+                                contentColor = MaterialTheme.colors.secondary
+                            )
+                        },
+                    ) {
+                        Column {
+                            Text(
+                                text = it.toString(),
+                                color = if (selectedIndex == index) {
+                                    Color.LightGray
+                                } else {
+                                    MaterialTheme.colors.secondary
+                                },
+                                modifier = Modifier
+                                    .padding(horizontal = 4.dp)
+                                    .align(Alignment.CenterHorizontally)
+                            )
+                            Text(
+                                text = buttonSecs[index].secondsAsStr(),
+                                modifier = Modifier.align(Alignment.CenterHorizontally),
+                                fontSize = if(numRoundsSelected <= 4) 12.sp else 10.sp,
+                                color = if (selectedIndex == index) {
+                                    Color.LightGray
+                                } else {
+                                    MaterialTheme.colors.secondary
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        if(lastClickedIndex.clicked) {
+            Box(modifier = Modifier.fillMaxWidth(0.93f)
+                .align(Alignment.CenterHorizontally),
+                contentAlignment = Alignment.Center
+            ) {
+                TimeSliderCard(
+                    initialTime = lastClickedTime,
+                    onTimeChanged = ::timeChanged,
+                    round = lastClickedRound
+                )
+            }
+        }
+
+    }
+}
+
+
+

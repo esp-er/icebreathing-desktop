@@ -1,5 +1,5 @@
-package patriker.breathing.iceman
-
+package io.github.esp_er.icebreathing
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -7,6 +7,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,10 +18,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
+import androidx.compose.ui.draw.clip
 import kotlin.system.exitProcess
 
 @Composable
-fun FinishScreen(thisSession: SessionData, clickedBack: () -> Unit) {
+fun FinishScreen(thisSession: SessionData, clickedBack: () -> Unit, breathsFinished: Int = 0) {
     val totalHold by remember {
         derivedStateOf {
             thisSession.breathHoldTime.values.take(thisSession.numRounds).fold(0) { sum, v ->
@@ -50,7 +52,7 @@ fun FinishScreen(thisSession: SessionData, clickedBack: () -> Unit) {
             )
 
             Text(
-                StrRes.ufinished, //TODO add to StrRes
+                StrRes.ufinished,
                 style = TextStyle(fontSize = 28.sp, color = Color.White.copy(alpha = textOpacity))
             )
 
@@ -58,7 +60,7 @@ fun FinishScreen(thisSession: SessionData, clickedBack: () -> Unit) {
 
             Row {
                 Text(
-                    "${thisSession.numRounds * thisSession.numBreaths}",
+                    "$breathsFinished",
                     color = MaterialTheme.colors.secondary,
                     fontSize = digitSize,
                     modifier = Modifier.padding(horizontal = 8.dp)
@@ -98,7 +100,7 @@ fun FinishScreen(thisSession: SessionData, clickedBack: () -> Unit) {
                 )
 
                 Text(
-                    "Minutes",
+                    "minutes",
                     color = Color.White.copy(alpha = textOpacity),
                     fontSize = size,
                     modifier = Modifier.align(Alignment.CenterVertically)
@@ -111,11 +113,28 @@ fun FinishScreen(thisSession: SessionData, clickedBack: () -> Unit) {
                 )
 
                 Text(
-                    "Seconds",
+                    "seconds",
                     color = Color.White.copy(alpha = textOpacity),
                     fontSize = size,
                     modifier = Modifier.align(Alignment.CenterVertically)
                 )
+            }
+
+            Column(modifier = Modifier.padding(vertical = 12.dp, horizontal = 16.dp)){
+                (1..thisSession.breathHoldTime.keys.size).forEach{roundNumber ->
+                    Box(modifier = Modifier
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(MaterialTheme.colors.primary)
+                        .padding(8.dp))
+                    {
+                        Text(
+                            "Round $roundNumber   :   ${thisSession.breathHoldTime.getOrDefault(roundNumber, 0).secondsAsStr()}",
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
             }
         }
         BackButton(

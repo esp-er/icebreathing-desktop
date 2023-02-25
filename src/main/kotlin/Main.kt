@@ -1,8 +1,7 @@
-package patriker.breathing.iceman
+package io.github.esp_er.icebreathing
 
 import androidx.compose.animation.animateColor
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -30,13 +29,11 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.foundation.window.WindowDraggableArea
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.window.*
-import kotlinx.coroutines.*
 import kotlin.system.exitProcess
-import patriker.breathing.iceman.ui.*
+import io.github.esp_er.icebreathing.ui.*
 
 
 val secondColorTemp = Color(143, 180, 255)
@@ -54,29 +51,28 @@ fun main() =
         //System.setProperty("skiko.renderApi", "OPENGL") //(Explicit) Not really necessary ("SOFTWARE" is too slow)
         System.setProperty("skiko.vsync.enabled", "false")
         val state =
-            rememberWindowState(width = 450.dp, height = 580.dp, position = WindowPosition(1400.dp, 200.dp))
-        var pinWindow by remember { mutableStateOf(false) }
-
+            rememberWindowState(
+                width = 450.dp, height = 580.dp, position = WindowPosition(alignment = Alignment.Center)
+            )
+        //var pinWindow by remember { mutableStateOf(false) }
 
         /*
-
         LaunchedEffect(true) {
             withContext(Dispatchers.IO) {
                 audio.initMusic()
             }
         }
-     */
+         */
 
         fun minimize() {
             state.isMinimized = true
         }
         Window(
             onCloseRequest = ::exitApplication,
-            title = "Iceman Breathing",
+            title = "Ice Breathing",
             state = state,
-            transparent = true,
-            undecorated = true,
-            alwaysOnTop = pinWindow
+            transparent = false,
+            undecorated = false,
         ) {
 
             val icon = painterResource("icebreathing_256.png")
@@ -84,30 +80,21 @@ fun main() =
             SideEffect {
                 window.iconImage = icon.toAwtImage(density, LayoutDirection.Ltr, Size(256f, 256f))
             }
-
-            fun pin() {
-                pinWindow = !pinWindow
-            }
-
-            App(audio, ::minimize, ::pin)
+            App(audio, ::minimize, {})
         }
 
     }
 
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun WindowScope.App(audio: AudioPlay, minimizeApp: () -> Unit, pin: () -> Unit) {
-    //val backColor = Color(43, 48, 59)
-    //val backColor = Color.White
-
     var transparency by remember{ mutableStateOf(1f) }
 
-    var buttonVisible by remember { mutableStateOf(false)}
+    var buttonVisible by remember { mutableStateOf(true)}
     val composableScope = rememberCoroutineScope()
-    var thisSession by remember{ mutableStateOf( SessionData(30, 6, emptyMap()) )}
+    var thisSession by remember{ mutableStateOf( SessionData(30, 6, emptyMap(), RetentionType.CountUp, BreathRate.X1) )}
 
-    fun showButtons() {
+    /*fun showButtons() {
         composableScope.launch {
             if (!buttonVisible) {
                 buttonVisible = true
@@ -115,35 +102,29 @@ fun WindowScope.App(audio: AudioPlay, minimizeApp: () -> Unit, pin: () -> Unit) 
                 buttonVisible = false
             }
         }
-    }
-    fun setTransparent(t: Boolean = false) {
-        transparency = if(t) 0.2f else 1f
-    }
+    }*/
     fun clickedBack(){
         //loadSettings(appConfig)
         AppState.screenState(ScreenType.Start)
     }
     IceBreathingTheme {
-        Surface(shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, color = mainColorTemp),
+        Surface(
+            //shape = RoundedCornerShape(8.dp),
+            //border = BorderStroke(1.dp, color = mainColorTemp),
             color = MaterialTheme.colors.background,
             modifier = Modifier.fillMaxSize(1f)
-                .pointerMoveFilter (onMove = { showButtons(); false })
         ){
 
-            //todo: at finished we transition to a breath hold screen // different animation
             fun clickedStartBreathing(s: SessionData) {
                 thisSession = s
                 AppState.screenState(ScreenType.Breathe)
             }
-
-
-            TitleBar(minimizeApp, pin)
+            //TitleBar(minimizeApp, pin)
             if(AppState.screenState() == ScreenType.Start) {
                 StartScreen(::clickedStartBreathing)
             }
             else{
-                BreatheScreen(buttonVisible, thisSession, ::clickedBack, audio, ::setTransparent)
+                BreatheScreen(buttonVisible, thisSession, ::clickedBack)
             }
         }
     }

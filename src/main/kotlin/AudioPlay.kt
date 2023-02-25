@@ -1,4 +1,4 @@
-package patriker.breathing.iceman
+package io.github.esp_er.icebreathing
 
 import java.io.*;
 import kotlin.concurrent.thread
@@ -15,7 +15,6 @@ enum class SoundType {
     BreatheIn, BreatheOut, Triangle;
 }
 
-//TODO: fix the null-unsafe calls
 class AudioPlay(){
 
     private var loadedSounds : HashMap<String, Sound> = HashMap<String,Sound>()
