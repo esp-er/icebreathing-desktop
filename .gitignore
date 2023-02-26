@@ -1,4 +1,7 @@
 /build/
+/sounds/
+/output/
+/bin/
 .gradle/*
 .idea/*
 .fleet/*

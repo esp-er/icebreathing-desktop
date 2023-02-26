@@ -44,7 +44,10 @@ configurations.all {
 dependencies {
     macAmd64(compose.desktop.macos_x64)
     macAarch64(compose.desktop.macos_arm64)
-    implementation(compose.desktop.currentOs)
+    windowsAmd64(compose.desktop.windows_x64)
+    linuxAmd64(compose.desktop.linux_x64)
+
+    //implementation(compose.desktop.currentOs)
     implementation("org.jetbrains.compose.material:material-icons-extended-desktop:1.1.1")
     implementation("com.soywiz.korlibs.korau:korau-jvm:$korauVersion")
     implementation("com.soywiz.korlibs.korio:korio-jvm:$korioVersion")
@@ -57,7 +60,7 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "Ice Breathing"
+            packageName = "ice-breathing"
             description = "An Iceman breathing meditation application"
             copyright = "(c) Patrik Eriksson"
             vendor = "esp-er.github.io"

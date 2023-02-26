@@ -44,7 +44,7 @@ val backColor = Color(29, 43, 125)
 val backColorDark = Color(25, 40, 121).copy(alpha=0.7f)
 
 
-val audio = AudioPlay()
+//val audio = AudioPlay()
 
 fun main() =
     application {
@@ -80,14 +80,14 @@ fun main() =
             SideEffect {
                 window.iconImage = icon.toAwtImage(density, LayoutDirection.Ltr, Size(256f, 256f))
             }
-            App(audio, ::minimize, {})
+            App(::minimize, {})
         }
 
     }
 
 
 @Composable
-fun WindowScope.App(audio: AudioPlay, minimizeApp: () -> Unit, pin: () -> Unit) {
+fun WindowScope.App(minimizeApp: () -> Unit, pin: () -> Unit) {
     var transparency by remember{ mutableStateOf(1f) }
 
     var buttonVisible by remember { mutableStateOf(true)}
