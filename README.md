@@ -13,7 +13,7 @@ Windows, Linux and macOS:
 ![Start Screen](screenshots/icebreathing_start_desktop.png)
 ![Breathe Screen](screenshots/icebreathing_breathe_desktop.png)
 ![Retention Screen](screenshots/icebreathing_retent_desktop.png)
-![Summary Screen](screenshots/icebreating_summary_desktop.png)
+![Summary Screen](screenshots/icebreathing_summary_desktop.png)
 
 Also see [Guided Wim Hof breathing example on YouTube](https://www.youtube.com/watch?v=tybOi4hjZFQ),
 for an example of this breathing method.
