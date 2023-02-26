@@ -1,5 +1,5 @@
 # ![icon](icons/icon-32x32.png) Ice Breathing
-Open Source Kotlin Multi-platform Wim Hof breathing breathing & meditation app made for Desktop OSes (with Jetpack and JetBrains Compose),
+Open Source Kotlin Multi-platform Wim Hof breathing & meditation app made for Desktop OSes (with Jetpack and JetBrains Compose),
 a separate repository will hold the Android version for now.
 MIT License.
 
